@@ -7,10 +7,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
 class BottomField extends StatelessWidget {
-  const BottomField({super.key, this.onTap, this.onChanged, this.controller});
+  const BottomField({super.key, this.onTap, this.onChanged, this.controller, required this.onAttach});
   final void Function()? onTap;
   final void Function(String)? onChanged;
   final TextEditingController? controller;
+  final VoidCallback onAttach;
 
   @override
   Widget build(BuildContext context) {
@@ -19,23 +20,26 @@ class BottomField extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 1.sw * 0.05, vertical: 25.h),
       child: Row(
         children: [
-          InkWell(
-            onTap: null,
-            child: CircleAvatar(
-              radius: 20.r,
-              backgroundColor: white,
-              child: const Icon(Icons.add),
-            ),
+          PopupMenuButton<String>(
+            icon: CircleAvatar(radius: 20.r, backgroundColor: white, child: const Icon(Icons.add)),
+            onSelected: (value) => onAttach(),
+            itemBuilder: (_) => [
+              const PopupMenuItem(value: 'image', child: ListTile(leading: Icon(Icons.image), title: Text('Image'))),
+              const PopupMenuItem(value: 'doc', child: ListTile(leading: Icon(Icons.description), title: Text('Document'))),
+            ],
           ),
           10.horizontalSpace,
           Expanded(
-              child: CustomTextfield(
-            controller: controller,
-            isChatText: true,
-            hintText: "Write message..",
-            onChanged: onChanged,
-            onTap: onTap,
-          ))
+            child: CustomTextfield(
+              controller: controller,
+              isChatText: true,
+              hintText: "Write message..",
+              onChanged: onChanged,
+              onTap: onTap,
+            ),
+          ),
+          10.horizontalSpace,
+          IconButton(onPressed: onTap, icon: const Icon(Icons.send, color: primary)),
         ],
       ),
     );
@@ -43,48 +47,41 @@ class BottomField extends StatelessWidget {
 }
 
 class ChatBubble extends StatelessWidget {
-  const ChatBubble(
-      {super.key, this.isCurrentUser = true, required this.message});
+  const ChatBubble({super.key, this.isCurrentUser = true, required this.message, required this.onLongPress});
   final bool isCurrentUser;
-  final Message message;
+  final ChatMessage message;
+  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
-    final borderRadius = isCurrentUser
-        ? BorderRadius.only(
-            topLeft: Radius.circular(16.r),
-            topRight: Radius.circular(16.r),
-            bottomLeft: Radius.circular(16.r))
-        : BorderRadius.only(
-            topLeft: Radius.circular(16.r),
-            topRight: Radius.circular(16.r),
-            bottomRight: Radius.circular(16.r));
-    final alignment =
-        isCurrentUser ? Alignment.centerRight : Alignment.centerLeft;
     return Align(
-      alignment: alignment,
-      child: Container(
-        constraints: BoxConstraints(maxWidth: 1.sw * 0.75, minWidth: 50.w),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
+      alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: GestureDetector(
+        onLongPress: onLongPress,
+        child: Container(
+          constraints: BoxConstraints(maxWidth: 1.sw * 0.75),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
             color: isCurrentUser ? primary : grey.withOpacity(0.2),
-            borderRadius: borderRadius),
-        child: Column(
-          crossAxisAlignment:
-              isCurrentUser ? CrossAxisAlignment.start : CrossAxisAlignment.end,
-          children: [
-            Text(
-              message.content!,
-              style: body.copyWith(color: isCurrentUser ? white : null),
-            ),
-            5.verticalSpace,
-            Text(
-              DateFormat('hh:mm a').format(message.timestamp!),
-              style: small.copyWith(color: isCurrentUser ? white : null),
-            )
-          ],
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (message.isDeleted)
+                const Text('This message was deleted', style: TextStyle(fontStyle: FontStyle.italic))
+              else
+                Text(message.text ?? '', style: body.copyWith(color: isCurrentUser ? white : null)),
+              5.verticalSpace,
+              Text(
+                message.createdAt != null ? DateFormat('hh:mm a').format(message.createdAt!) : '',
+                style: small.copyWith(color: isCurrentUser ? white : null),
+              )
+            ],
+          ),
         ),
       ),
     );
   }
 }
+

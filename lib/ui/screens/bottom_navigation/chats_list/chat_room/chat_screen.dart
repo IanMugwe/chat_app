@@ -2,10 +2,11 @@ import 'package:chat_app/core/constants/colors.dart';
 import 'package:chat_app/core/constants/styles.dart';
 import 'package:chat_app/core/extension/widget_extension.dart';
 import 'package:chat_app/core/models/user_model.dart';
+import 'package:chat_app/core/models/message_model.dart';
 import 'package:chat_app/core/services/chat_service.dart';
-import 'package:chat_app/ui/screens/auth/login/login_screen.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chat_room/chat_viewmodel.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chat_room/chat_widgets.dart';
+import 'package:chat_app/ui/widgets/message_composer.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -26,8 +27,7 @@ class ChatScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 1.sw * 0.05, vertical: 10.h),
+                  padding: EdgeInsets.symmetric(horizontal: 1.sw * 0.05, vertical: 10.h),
                   child: Column(
                     children: [
                       35.verticalSpace,
@@ -36,15 +36,15 @@ class ChatScreen extends StatelessWidget {
                       Expanded(
                         child: ListView.separated(
                           padding: const EdgeInsets.all(0),
+                          reverse: true,
                           itemCount: model.messages.length,
-                          separatorBuilder: (context, index) =>
-                              10.verticalSpace,
+                          separatorBuilder: (_, __) => 10.verticalSpace,
                           itemBuilder: (context, index) {
                             final message = model.messages[index];
                             return ChatBubble(
-                              isCurrentUser:
-                                  message.senderId == currentUser!.uid,
+                              isCurrentUser: message.senderId == currentUser!.uid,
                               message: message,
+                              onLongPress: () => _showContextMenu(context, model, message),
                             );
                           },
                         ),
@@ -53,13 +53,14 @@ class ChatScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              BottomField(
+              MessageComposer(
                 controller: model.controller,
-                onTap: () async {
-                  try {
-                    await model.saveMessage();
-                  } catch (e) {
-                    context.showSnackbar(e.toString());
+                onChanged: (_) {},
+                onSend: () async {
+                  final text = model.controller.text.trim();
+                  if (text.isNotEmpty) {
+                    await model.sendTextMessage(text);
+                    model.controller.clear();
                   }
                 },
               )
@@ -70,6 +71,15 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
+  void _showContextMenu(BuildContext context, ChatViewmodel model, ChatMessage message) {
+    showModalBottomSheet(context: context, builder: (_) => SafeArea(child: Wrap(children: [
+      ListTile(leading: const Icon(Icons.delete), title: const Text('Delete'), onTap: () {
+        model.deleteMessage(message.id);
+        Navigator.pop(context);
+      }),
+    ])));
+  }
+
   Row _buildHeader(BuildContext context, {String name = ""}) {
     return Row(
       children: [
@@ -77,25 +87,12 @@ class ChatScreen extends StatelessWidget {
           onTap: () => Navigator.pop(context),
           child: Container(
             padding: const EdgeInsets.only(left: 10, top: 6, bottom: 6),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8.r),
-                color: grey.withOpacity(0.15)),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8.r), color: grey.withOpacity(0.15)),
             child: const Icon(Icons.arrow_back_ios),
           ),
         ),
         15.horizontalSpace,
-        Text(
-          name,
-          style: h.copyWith(fontSize: 20.sp),
-        ),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.r),
-              color: grey.withOpacity(0.15)),
-          child: const Icon(Icons.more_vert),
-        ),
+        Text(name, style: h.copyWith(fontSize: 20.sp)),
       ],
     );
   }

@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
-
 import 'package:chat_app/core/models/message_model.dart';
 import 'package:chat_app/core/models/user_model.dart';
 import 'package:chat_app/core/other/base_viewmodel.dart';
@@ -16,61 +14,52 @@ class ChatViewmodel extends BaseViewmodel {
 
   ChatViewmodel(this._chatService, this._currentUser, this._receiver) {
     getChatRoom();
-
     _subscription = _chatService.getMessages(chatRoomId).listen((messages) {
-      _messages = messages.docs.map((e) => Message.fromMap(e.data())).toList();
+      _messages = messages;
       notifyListeners();
     });
   }
 
   String chatRoomId = "";
-
+  List<ChatMessage> _messages = [];
   final _messageController = TextEditingController();
 
+  List<ChatMessage> get messages => _messages;
   TextEditingController get controller => _messageController;
 
-  List<Message> _messages = [];
-
-  List<Message> get messages => _messages;
-
   getChatRoom() {
-    if (_currentUser.uid.hashCode > _receiver.uid.hashCode) {
+    if (_currentUser.uid!.hashCode > _receiver.uid!.hashCode) {
       chatRoomId = "${_currentUser.uid}_${_receiver.uid}";
     } else {
       chatRoomId = "${_receiver.uid}_${_currentUser.uid}";
     }
   }
 
-  saveMessage() async {
-    log("Send Message");
+  Future<void> sendTextMessage(String text, {String? replyTo, String? replyPreview}) async {
     try {
-      if (_messageController.text.isEmpty) {
-        throw Exception("Please enter some text");
-      }
-      final now = DateTime.now();
-
-      final message = Message(
-          id: now.millisecondsSinceEpoch.toString(),
-          content: _messageController.text,
-          senderId: _currentUser.uid,
-          receiverId: _receiver.uid,
-          timestamp: now);
-
-      await _chatService.saveMessage(message.toMap(), chatRoomId);
-
-      _chatService.updateLastMessage(_currentUser.uid!, _receiver.uid!,
-          message.content!, now.millisecondsSinceEpoch);
-
-      _messageController.clear();
+      await _chatService.sendMessage(
+        chatRoomId: chatRoomId,
+        senderId: _currentUser.uid!,
+        senderName: _currentUser.name!,
+        text: text,
+        replyToMessageId: replyTo,
+        replyPreview: replyPreview,
+      );
     } catch (e) {
       rethrow;
     }
   }
 
+  Future<void> editMessage(String messageId, String text) async =>
+      await _chatService.editMessage(chatRoomId, messageId, text);
+
+  Future<void> deleteMessage(String messageId) async =>
+      await _chatService.deleteMessage(chatRoomId, messageId);
+
   @override
   void dispose() {
-    super.dispose();
-
     _subscription?.cancel();
+    _messageController.dispose();
+    super.dispose();
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/message_model.dart';
+import 'package:chat_app/ui/models/chat_message.dart';
 
 class MediaPreview extends StatelessWidget {
   const MediaPreview({super.key, required this.attachments});
