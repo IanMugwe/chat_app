@@ -68,7 +68,7 @@ class SignupViewmodel extends BaseViewmodel {
 
   signup() async {
     String? downloadUrl;
-    setstate(ViewState.loading);
+    setViewState(ViewState.loading);
     try {
       if (_password != _confirmPassword) {
         throw Exception("The password do not match");
@@ -87,12 +87,12 @@ class SignupViewmodel extends BaseViewmodel {
         await _db.saveUser(user.toMap());
       }
 
-      setstate(ViewState.idle);
+      setViewState(ViewState.idle);
     } on FirebaseAuthException catch (e) {
-      setstate(ViewState.idle);
+      setViewState(ViewState.idle);
       rethrow;
     } catch (e) {
-      setstate(ViewState.idle);
+      setViewState(ViewState.idle);
       log(e.toString());
       rethrow;
     }

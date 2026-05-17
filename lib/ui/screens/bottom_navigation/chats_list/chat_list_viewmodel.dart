@@ -1,8 +1,7 @@
 import 'dart:developer';
-
-import 'package:chat_app/core/enums/enums.dart';
 import 'package:chat_app/core/models/user_model.dart';
 import 'package:chat_app/core/other/base_viewmodel.dart';
+import 'package:chat_app/core/enums/enums.dart';
 import 'package:chat_app/core/services/database_service.dart';
 
 class ChatListViewmodel extends BaseViewmodel {
@@ -27,7 +26,7 @@ class ChatListViewmodel extends BaseViewmodel {
 
   fetchUsers() async {
     try {
-      setstate(ViewState.loading);
+      setViewState(ViewState.loading);
       // final res = await _db.fetchUsers(_currentUser.uid!);
 
       _db.fetchUserStream(_currentUser.uid!).listen((data) {
@@ -41,9 +40,9 @@ class ChatListViewmodel extends BaseViewmodel {
       //   _filteredUsers = _users;
       //   notifyListeners();
       // }
-      setstate(ViewState.idle);
+      setViewState(ViewState.idle);
     } catch (e) {
-      setstate(ViewState.idle);
+      setViewState(ViewState.idle);
       log("Error Fetching Users: $e");
     }
   }

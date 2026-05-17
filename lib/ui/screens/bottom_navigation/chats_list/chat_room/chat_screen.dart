@@ -1,15 +1,19 @@
+import 'dart:io';
 import 'package:chat_app/core/constants/colors.dart';
 import 'package:chat_app/core/constants/styles.dart';
 import 'package:chat_app/core/extension/widget_extension.dart';
 import 'package:chat_app/core/models/user_model.dart';
 import 'package:chat_app/core/models/message_model.dart';
+import 'package:chat_app/core/models/chat_enums.dart';
 import 'package:chat_app/core/services/chat_service.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chat_room/chat_viewmodel.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chat_room/chat_widgets.dart';
+import 'package:chat_app/ui/widgets/media_service.dart';
 import 'package:chat_app/ui/widgets/message_composer.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class ChatScreen extends StatelessWidget {
@@ -22,6 +26,15 @@ class ChatScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => ChatViewmodel(ChatService(), currentUser!, receiver),
       child: Consumer<ChatViewmodel>(builder: (context, model, _) {
+        
+        Future<void> handleMedia(File? file, MessageType type) async {
+          if (file == null) return;
+          final url = await MediaService.instance.uploadMedia(file, 'chat_media');
+          if (url != null) {
+            await model.sendTextMessage(url, type: type);
+          }
+        }
+
         return Scaffold(
           body: Column(
             children: [
@@ -63,6 +76,9 @@ class ChatScreen extends StatelessWidget {
                     model.controller.clear();
                   }
                 },
+                onImagePick: () async => handleMedia(await MediaService.instance.pickImage(ImageSource.gallery), MessageType.image),
+                onCameraPick: () async => handleMedia(await MediaService.instance.pickImage(ImageSource.camera), MessageType.image),
+                onFilePick: () async => handleMedia(await MediaService.instance.pickFile(), MessageType.file),
               )
             ],
           ),
@@ -70,6 +86,7 @@ class ChatScreen extends StatelessWidget {
       }),
     );
   }
+
 
   void _showContextMenu(BuildContext context, ChatViewmodel model, ChatMessage message) {
     showModalBottomSheet(context: context, builder: (_) => SafeArea(child: Wrap(children: [

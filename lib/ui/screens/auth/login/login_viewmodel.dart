@@ -28,16 +28,16 @@ class LoginViewmodel extends BaseViewmodel {
   }
 
   login() async {
-    setstate(ViewState.loading);
+    setViewState(ViewState.loading);
     try {
       await _auth.login(_email, _password);
-      setstate(ViewState.idle);
+      setViewState(ViewState.idle);
     } on FirebaseAuthException catch (e) {
-      setstate(ViewState.idle);
+      setViewState(ViewState.idle);
       rethrow;
     } catch (e) {
       log(e.toString());
-      setstate(ViewState.idle);
+      setViewState(ViewState.idle);
       rethrow;
     }
   }
