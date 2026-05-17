@@ -5,6 +5,7 @@ import 'media_attachment.dart';
 class ChatMessage {
   final String id;
   final String conversationId;
+  final ChatScope scope;
   final String senderId;
   final String? senderName;
   final MessageType type;
@@ -13,12 +14,16 @@ class ChatMessage {
   final String? replyToMessageId;
   final String? replyPreview;
   final List<MediaAttachment> attachments;
+  final List<String> mentions;
   final Map<String, List<String>> reactions;
   final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final DateTime? deletedAt;
 
   const ChatMessage({
     required this.id,
     required this.conversationId,
+    required this.scope,
     required this.senderId,
     this.senderName,
     required this.type,
@@ -27,18 +32,22 @@ class ChatMessage {
     this.replyToMessageId,
     this.replyPreview,
     this.attachments = const [],
+    this.mentions = const [],
     this.reactions = const {},
     this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
   });
 
-  bool get isDeleted => status == MessageStatus.deleted;
+  bool get isDeleted => status == MessageStatus.deleted || deletedAt != null;
 
-  factory ChatMessage.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc, String conversationId) {
+  factory ChatMessage.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc, ChatScope scope, String conversationId) {
     final data = doc.data() ?? {};
     final rawReactions = Map<String, dynamic>.from(data['reactions'] ?? {});
     return ChatMessage(
       id: doc.id,
       conversationId: conversationId,
+      scope: scope,
       senderId: data['senderId']?.toString() ?? '',
       senderName: data['senderName']?.toString(),
       type: enumFromString(MessageType.values, data['type']?.toString(), MessageType.text),
@@ -49,8 +58,11 @@ class ChatMessage {
       attachments: ((data['attachments'] as List?) ?? const [])
           .map((e) => MediaAttachment.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList(),
+      mentions: ((data['mentions'] as List?) ?? const []).map((e) => e.toString()).toList(),
       reactions: rawReactions.map((k, v) => MapEntry(k, (v as List).map((e) => e.toString()).toList())),
       createdAt: data['createdAt']?.toDate(),
+      updatedAt: data['updatedAt']?.toDate(),
+      deletedAt: data['deletedAt']?.toDate(),
     );
   }
 
@@ -63,7 +75,9 @@ class ChatMessage {
         if (replyToMessageId != null) 'replyToMessageId': replyToMessageId,
         if (replyPreview != null) 'replyPreview': replyPreview,
         'attachments': attachments.map((e) => e.toMap()).toList(),
+        'mentions': mentions,
         'reactions': reactions,
         'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
       };
 }
