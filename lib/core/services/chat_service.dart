@@ -1,51 +1,67 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/chat_enums.dart';
+import '../models/message_model.dart';
+import '../models/media_attachment.dart';
 
 class ChatService {
   final _fire = FirebaseFirestore.instance;
 
-  saveMessage(Map<String, dynamic> message, String chatRoomId) async {
-    try {
-      await _fire
-          .collection("chatRooms")
-          .doc(chatRoomId)
-          .collection("messages")
-          .add(message);
-    } catch (e) {
-      rethrow;
-    }
+  Future<void> sendMessage({
+    required String chatRoomId,
+    required String senderId,
+    required String senderName,
+    String? text,
+    MessageType type = MessageType.text,
+    String? replyToMessageId,
+    String? replyPreview,
+    List<MediaAttachment> attachments = const [],
+  }) async {
+    final msgRef = _fire.collection("chatRooms").doc(chatRoomId).collection("messages").doc();
+    final message = ChatMessage(
+      id: msgRef.id,
+      conversationId: chatRoomId,
+      senderId: senderId,
+      senderName: senderName,
+      type: type,
+      status: MessageStatus.sent,
+      text: text,
+      replyToMessageId: replyToMessageId,
+      replyPreview: replyPreview,
+      attachments: attachments,
+      createdAt: DateTime.now(),
+    );
+
+    await msgRef.set(message.toCreateMap());
+    
+    // Update last message in parent room
+    await _fire.collection("chatRooms").doc(chatRoomId).update({
+      "lastMessage": text ?? "📎 Attachment",
+      "lastMessageAt": FieldValue.serverTimestamp(),
+    });
   }
 
-  updateLastMessage(String currentUid, String receiverUid, String message,
-      int timestamp) async {
-    try {
-      await _fire.collection("users").doc(currentUid).update({
-        "lastMessage": {
-          "content": message,
-          "timestamp": timestamp,
-          "senderId": currentUid
-        },
-        "unreadCounter": FieldValue.increment(1)
-      });
-
-      await _fire.collection("users").doc(receiverUid).update({
-        "lastMessage": {
-          "content": message,
-          "timestamp": timestamp,
-          "senderId": currentUid,
-        },
-        "unreadCounter": 0
-      });
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Stream<QuerySnapshot<Map<String, dynamic>>> getMessages(String chatRoomId) {
+  Stream<List<ChatMessage>> getMessages(String chatRoomId) {
     return _fire
         .collection("chatRooms")
         .doc(chatRoomId)
         .collection("messages")
-        .orderBy("timestamp", descending: false)
-        .snapshots();
+        .orderBy("createdAt", descending: true)
+        .snapshots()
+        .map((s) => s.docs.map((d) => ChatMessage.fromDoc(d, chatRoomId)).toList());
+  }
+
+  Future<void> editMessage(String chatRoomId, String messageId, String text) async {
+    await _fire.collection("chatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
+      'text': text,
+      'status': enumName(MessageStatus.edited),
+    });
+  }
+
+  Future<void> deleteMessage(String chatRoomId, String messageId) async {
+    await _fire.collection("chatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
+      'status': enumName(MessageStatus.deleted),
+      'text': null,
+      'attachments': [],
+    });
   }
 }
