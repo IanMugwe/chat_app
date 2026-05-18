@@ -1,19 +1,20 @@
-import 'package:chat_app/core/constants/string.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/bottom_navigation_viewmodel.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chats_list_screen.dart';
-import 'package:chat_app/ui/screens/bottom_navigation/profile/profile_screen.dart';
+import 'package:chat_app/ui/screens/channels/channels_placeholder_screen.dart';
+import 'package:chat_app/ui/screens/groups/groups_placeholder_screen.dart';
+import 'package:chat_app/ui/screens/settings/settings_screen.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 class BottomNavigationScreen extends StatelessWidget {
   const BottomNavigationScreen({super.key});
 
   static final List<Widget> _screens = [
-    const Center(child: Text("Home Screen")),
     const ChatsListScreen(),
-    const ProfileScreen()
+    const GroupsPlaceholderScreen(),
+    const ChannelsPlaceholderScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -22,12 +23,27 @@ class BottomNavigationScreen extends StatelessWidget {
 
     const items = [
       BottomNavigationBarItem(
-          label: "", icon: BottomNavButton(iconPath: homeIcon)),
+        label: "Chats",
+        icon: BottomNavIcon(icon: Icons.chat_bubble_outline_rounded),
+        activeIcon: BottomNavIcon(icon: Icons.chat_bubble_rounded),
+      ),
       BottomNavigationBarItem(
-          label: "", icon: BottomNavButton(iconPath: chatsIcon)),
+        label: "Groups",
+        icon: BottomNavIcon(icon: Icons.groups_outlined),
+        activeIcon: BottomNavIcon(icon: Icons.groups_rounded),
+      ),
       BottomNavigationBarItem(
-          label: "", icon: BottomNavButton(iconPath: profileIcon)),
+        label: "Channels",
+        icon: BottomNavIcon(icon: Icons.campaign_outlined),
+        activeIcon: BottomNavIcon(icon: Icons.campaign_rounded),
+      ),
+      BottomNavigationBarItem(
+        label: "Settings",
+        icon: BottomNavIcon(icon: Icons.settings_outlined),
+        activeIcon: BottomNavIcon(icon: Icons.settings_rounded),
+      ),
     ];
+    
     return ChangeNotifierProvider(
       create: (context) => BottomNavigationViewmodel(),
       child: Consumer<BottomNavigationViewmodel>(builder: (context, model, _) {
@@ -38,6 +54,7 @@ class BottomNavigationScreen extends StatelessWidget {
             : Scaffold(
                 body: BottomNavigationScreen._screens[model.currentIndex],
                 bottomNavigationBar: CustomNavBar(
+                  currentIndex: model.currentIndex,
                   onTap: model.setIndex,
                   items: items,
                 ));
@@ -47,8 +64,14 @@ class BottomNavigationScreen extends StatelessWidget {
 }
 
 class CustomNavBar extends StatelessWidget {
-  const CustomNavBar({super.key, this.onTap, required this.items});
+  const CustomNavBar({
+    super.key,
+    required this.currentIndex,
+    this.onTap,
+    required this.items,
+  });
 
+  final int currentIndex;
   final void Function(int)? onTap;
   final List<BottomNavigationBarItem> items;
 
@@ -63,31 +86,38 @@ class CustomNavBar extends StatelessWidget {
         decoration: const BoxDecoration(
           borderRadius: borderRadius,
           boxShadow: [
-            BoxShadow(color: Colors.black38, spreadRadius: 0, blurRadius: 10),
+            BoxShadow(color: Colors.black12, spreadRadius: 0, blurRadius: 10),
           ],
         ),
         child: ClipRRect(
           borderRadius: borderRadius,
           child: BottomNavigationBar(
+            currentIndex: currentIndex,
             onTap: onTap,
             items: items,
+            type: BottomNavigationBarType.fixed,
+            showSelectedLabels: true,
+            showUnselectedLabels: true,
+            selectedItemColor: Theme.of(context).colorScheme.primary,
+            unselectedItemColor: Colors.grey,
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
           ),
         ));
   }
 }
 
-class BottomNavButton extends StatelessWidget {
-  const BottomNavButton({super.key, required this.iconPath});
-  final String iconPath;
+class BottomNavIcon extends StatelessWidget {
+  const BottomNavIcon({super.key, required this.icon});
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(top: 10.h),
-      child: Image.asset(
-        iconPath,
-        height: 35,
-        width: 35,
+      padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+      child: Icon(
+        icon,
+        size: 26,
       ),
     );
   }
