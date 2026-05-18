@@ -46,7 +46,7 @@ class MessageBubble extends StatelessWidget {
               const Text('This message was deleted', style: TextStyle(fontStyle: FontStyle.italic))
             else ...[
               if (message.text != null && message.text!.isNotEmpty) Text(message.text!),
-              MediaPreview(attachments: message.attachments),
+              MediaPreview(attachments: message.attachments, isOutgoing: isMine),
             ],
             if (message.reactions.isNotEmpty)
               Padding(

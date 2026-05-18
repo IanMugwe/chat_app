@@ -1,24 +1,47 @@
 import 'package:flutter/material.dart';
-import 'package:chat_app/ui/models/chat_message.dart';
+import '../../core/models/media_attachment.dart';
+import 'image_media_widget.dart';
+import 'file_media_widget.dart';
+import 'voice_media_widget.dart';
 
 class MediaPreview extends StatelessWidget {
-  const MediaPreview({super.key, required this.attachments});
-  final List<dynamic> attachments; // Using dynamic for simplicity until fully migrated
+  const MediaPreview({super.key, required this.attachments, this.isOutgoing = false});
+  final List<dynamic> attachments; // Expected to be List<MediaAttachment>
+  final bool isOutgoing;
 
   @override
   Widget build(BuildContext context) {
     if (attachments.isEmpty) return const SizedBox.shrink();
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: attachments.map((a) {
-        // Simple preview logic
-        return Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(8)),
-          child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.attach_file), SizedBox(width: 4), Text('File')]),
-        );
-      }).toList(),
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: attachments.map((a) {
+          if (a is! MediaAttachment) {
+            return const SizedBox.shrink();
+          }
+
+          final mime = a.mimeType.toLowerCase();
+          
+          if (mime.startsWith('image/')) {
+            return ImageMediaWidget(
+              url: a.url,
+            );
+          } else if (mime.startsWith('audio/')) {
+            return VoiceMediaWidget(
+              isOutgoing: isOutgoing,
+              // Note: Duration might need to be parsed from metadata if available, using default here.
+            );
+          } else {
+            return FileMediaWidget(
+              fileName: a.fileName,
+              fileSizeBytes: a.sizeBytes,
+              isOutgoing: isOutgoing,
+            );
+          }
+        }).toList(),
+      ),
     );
   }
 }
