@@ -1,10 +1,10 @@
-import '../models/chat_enums.dart';
+import 'package:chat_app/core/models/chat_enums.dart';
 
 class ChatPaths {
   static String collectionFor(ChatScope scope) {
     switch (scope) {
       case ChatScope.direct:
-        return 'directChats';
+        return 'chatRooms';
       case ChatScope.group:
         return 'groups';
       case ChatScope.channel:

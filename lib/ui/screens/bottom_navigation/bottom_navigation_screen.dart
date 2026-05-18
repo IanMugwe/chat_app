@@ -1,25 +1,30 @@
 import 'package:chat_app/ui/screens/bottom_navigation/bottom_navigation_viewmodel.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chats_list_screen.dart';
-import 'package:chat_app/ui/screens/channels/channels_placeholder_screen.dart';
-import 'package:chat_app/ui/screens/groups/groups_placeholder_screen.dart';
 import 'package:chat_app/ui/screens/settings/settings_screen.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
+import 'package:chat_app/groups_channels/yohpal_chat_groups_channels.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class BottomNavigationScreen extends StatelessWidget {
   const BottomNavigationScreen({super.key});
 
-  static final List<Widget> _screens = [
-    const ChatsListScreen(),
-    const GroupsPlaceholderScreen(),
-    const ChannelsPlaceholderScreen(),
-    const SettingsScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<UserProvider>(context).user;
+
+    final screens = [
+      const ChatsListScreen(),
+      GroupsListScreen(
+        currentUserId: currentUser?.uid ?? '',
+        currentUserName: currentUser?.name ?? '',
+      ),
+      ChannelsListScreen(
+        currentUserId: currentUser?.uid ?? '',
+        currentUserName: currentUser?.name ?? '',
+      ),
+      const SettingsScreen(),
+    ];
 
     const items = [
       BottomNavigationBarItem(
@@ -44,15 +49,18 @@ class BottomNavigationScreen extends StatelessWidget {
       ),
     ];
     
-    return ChangeNotifierProvider(
-      create: (context) => BottomNavigationViewmodel(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => BottomNavigationViewmodel()),
+        ChangeNotifierProvider(create: (context) => ConversationsProvider(ChatRepository())),
+      ],
       child: Consumer<BottomNavigationViewmodel>(builder: (context, model, _) {
         return currentUser == null
             ? const Center(
                 child: CircularProgressIndicator(),
               )
             : Scaffold(
-                body: BottomNavigationScreen._screens[model.currentIndex],
+                body: screens[model.currentIndex],
                 bottomNavigationBar: CustomNavBar(
                   currentIndex: model.currentIndex,
                   onTap: model.setIndex,

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:chat_app/core/models/message_model.dart';
+import 'package:chat_app/core/models/chat_message.dart';
 import 'package:chat_app/core/models/chat_enums.dart';
 import 'package:chat_app/core/models/user_model.dart';
 import 'package:chat_app/core/other/base_viewmodel.dart';

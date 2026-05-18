@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/chat_enums.dart';
-import '../models/message_model.dart';
+import '../models/chat_message.dart';
 import '../models/media_attachment.dart';
 
 class ChatService {
@@ -20,6 +20,7 @@ class ChatService {
     final message = ChatMessage(
       id: msgRef.id,
       conversationId: chatRoomId,
+      scope: ChatScope.direct,
       senderId: senderId,
       senderName: senderName,
       type: type,
@@ -47,7 +48,7 @@ class ChatService {
         .collection("messages")
         .orderBy("createdAt", descending: true)
         .snapshots()
-        .map((s) => s.docs.map((d) => ChatMessage.fromDoc(d, chatRoomId)).toList());
+        .map((s) => s.docs.map((d) => ChatMessage.fromDoc(d, ChatScope.direct, chatRoomId)).toList());
   }
 
   Future<void> editMessage(String chatRoomId, String messageId, String text) async {

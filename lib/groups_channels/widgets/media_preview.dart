@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/media_attachment.dart';
+import 'package:chat_app/core/models/media_attachment.dart';
 import '../../ui/widgets/image_media_widget.dart';
 import '../../ui/widgets/file_media_widget.dart';
 import '../../ui/widgets/voice_media_widget.dart';

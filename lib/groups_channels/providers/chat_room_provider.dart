@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import '../models/chat_enums.dart';
-import '../models/message.dart';
-import '../models/media_attachment.dart';
+import 'package:chat_app/core/models/chat_enums.dart';
+import 'package:chat_app/core/models/chat_message.dart';
+import 'package:chat_app/core/models/media_attachment.dart';
 import '../services/chat_repository.dart';
 
 class ChatRoomProvider extends ChangeNotifier {

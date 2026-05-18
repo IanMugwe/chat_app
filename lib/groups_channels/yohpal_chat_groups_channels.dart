@@ -1,9 +1,9 @@
-export 'models/chat_enums.dart';
-export 'models/chat_user.dart';
-export 'models/conversation.dart';
-export 'models/message.dart';
-export 'models/member.dart';
-export 'models/media_attachment.dart';
+export 'package:chat_app/core/models/chat_enums.dart';
+export 'package:chat_app/core/models/chat_user.dart';
+export 'package:chat_app/core/models/conversation.dart';
+export 'package:chat_app/core/models/chat_message.dart';
+export 'package:chat_app/core/models/member.dart';
+export 'package:chat_app/core/models/media_attachment.dart';
 export 'services/chat_repository.dart';
 export 'services/media_upload_service.dart';
 export 'providers/conversations_provider.dart';

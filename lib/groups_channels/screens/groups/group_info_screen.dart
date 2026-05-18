@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/chat_enums.dart';
-import '../../models/conversation.dart';
+import 'package:chat_app/core/models/chat_enums.dart';
+import 'package:chat_app/core/models/conversation.dart';
 import '../../providers/members_provider.dart';
 import '../../services/chat_repository.dart';
 

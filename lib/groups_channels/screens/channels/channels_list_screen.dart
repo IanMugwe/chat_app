@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/chat_enums.dart';
+import 'package:chat_app/core/models/chat_enums.dart';
 import '../../providers/conversations_provider.dart';
 import '../../services/chat_repository.dart';
 import '../../widgets/conversation_tile.dart';

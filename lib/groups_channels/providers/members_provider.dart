@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import '../models/chat_enums.dart';
-import '../models/member.dart';
+import 'package:chat_app/core/models/chat_enums.dart';
+import 'package:chat_app/core/models/member.dart';
 import '../services/chat_repository.dart';
 
 class MembersProvider extends ChangeNotifier {

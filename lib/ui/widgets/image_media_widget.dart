@@ -48,7 +48,7 @@ class ImageMediaWidget extends StatelessWidget {
               width: defaultWidth,
               height: defaultHeight,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _buildError(context, defaultWidth, defaultHeight, placeholderColor),
+              errorBuilder: (context, error, stackTrace) => _buildError(context, defaultWidth, defaultHeight, placeholderColor),
             )
           : _isRemote
               ? Image.network(
@@ -73,7 +73,7 @@ class ImageMediaWidget extends StatelessWidget {
                       ),
                     );
                   },
-                  errorBuilder: (_, _, _) => _buildError(context, defaultWidth, defaultHeight, placeholderColor),
+                  errorBuilder: (context, error, stackTrace) => _buildError(context, defaultWidth, defaultHeight, placeholderColor),
                 )
               // Fallback: unrecognised scheme — treat as local file
               : Image.file(
@@ -81,7 +81,7 @@ class ImageMediaWidget extends StatelessWidget {
                   width: defaultWidth,
                   height: defaultHeight,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _buildError(context, defaultWidth, defaultHeight, placeholderColor),
+                  errorBuilder: (context, error, stackTrace) => _buildError(context, defaultWidth, defaultHeight, placeholderColor),
                 ),
     );
   }

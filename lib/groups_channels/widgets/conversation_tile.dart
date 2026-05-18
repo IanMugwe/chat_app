@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/conversation.dart';
+import 'package:chat_app/core/models/conversation.dart';
 
 class ConversationTile extends StatelessWidget {
   const ConversationTile({

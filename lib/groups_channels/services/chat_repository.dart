@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/chat_enums.dart';
-import '../models/conversation.dart';
-import '../models/member.dart';
-import '../models/message.dart';
-import '../models/media_attachment.dart';
+import 'package:chat_app/core/models/chat_enums.dart';
+import 'package:chat_app/core/models/conversation.dart';
+import 'package:chat_app/core/models/member.dart';
+import 'package:chat_app/core/models/chat_message.dart';
+import 'package:chat_app/core/models/media_attachment.dart';
 import 'chat_paths.dart';
 
 class ChatRepository {

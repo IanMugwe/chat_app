@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
-import '../models/chat_enums.dart';
-import '../models/media_attachment.dart';
+import 'package:chat_app/core/models/chat_enums.dart';
+import 'package:chat_app/core/models/media_attachment.dart';
 import 'chat_paths.dart';
 
 class MediaUploadService {

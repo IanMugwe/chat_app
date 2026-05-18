@@ -3,7 +3,7 @@ import 'package:chat_app/core/constants/colors.dart';
 import 'package:chat_app/core/constants/styles.dart';
 import 'package:chat_app/core/extension/widget_extension.dart';
 import 'package:chat_app/core/models/user_model.dart';
-import 'package:chat_app/core/models/message_model.dart';
+import 'package:chat_app/core/models/chat_message.dart';
 import 'package:chat_app/core/models/chat_enums.dart';
 import 'package:chat_app/core/services/chat_service.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chat_room/chat_viewmodel.dart';
