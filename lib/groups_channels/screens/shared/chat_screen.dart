@@ -111,6 +111,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 onEdit: (m) => _edit(context, room, m),
                 onDelete: (m) => room.delete(widget.scope, widget.conversation.id, m.id),
                 onReact: (m, e) => room.react(widget.scope, widget.conversation.id, m.id, e, widget.currentUserId, true),
+                onStar: (m) => room.starMessage(widget.scope, widget.conversation.id, m.id, !m.isStarred),
+                onPin: (m) => room.pinMessage(widget.scope, widget.conversation.id, m.id, !m.isPinned),
               ),
             ),
             if (replyingTo != null)

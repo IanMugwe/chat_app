@@ -82,6 +82,76 @@ class ChatRoomProvider extends ChangeNotifier {
   Future<void> react(ChatScope scope, String conversationId, String messageId, String emoji, String userId, bool add) =>
       _repo.react(scope: scope, conversationId: conversationId, messageId: messageId, emoji: emoji, userId: userId, add: add);
 
+  Future<void> starMessage(ChatScope scope, String conversationId, String messageId, bool isStarred) async {
+    final index = messages.indexWhere((m) => m.id == messageId);
+    if (index != -1) {
+      final oldMessage = messages[index];
+      messages[index] = ChatMessage(
+        id: oldMessage.id,
+        conversationId: oldMessage.conversationId,
+        scope: oldMessage.scope,
+        senderId: oldMessage.senderId,
+        senderName: oldMessage.senderName,
+        type: oldMessage.type,
+        status: oldMessage.status,
+        text: oldMessage.text,
+        replyToMessageId: oldMessage.replyToMessageId,
+        replyPreview: oldMessage.replyPreview,
+        attachments: oldMessage.attachments,
+        mentions: oldMessage.mentions,
+        reactions: oldMessage.reactions,
+        createdAt: oldMessage.createdAt,
+        updatedAt: oldMessage.updatedAt,
+        deletedAt: oldMessage.deletedAt,
+        isPinned: oldMessage.isPinned,
+        isStarred: isStarred,
+      );
+      notifyListeners();
+
+      try {
+        await _repo.starMessage(scope: scope, conversationId: conversationId, messageId: messageId, isStarred: isStarred);
+      } catch (e) {
+        messages[index] = oldMessage;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> pinMessage(ChatScope scope, String conversationId, String messageId, bool isPinned) async {
+    final index = messages.indexWhere((m) => m.id == messageId);
+    if (index != -1) {
+      final oldMessage = messages[index];
+      messages[index] = ChatMessage(
+        id: oldMessage.id,
+        conversationId: oldMessage.conversationId,
+        scope: oldMessage.scope,
+        senderId: oldMessage.senderId,
+        senderName: oldMessage.senderName,
+        type: oldMessage.type,
+        status: oldMessage.status,
+        text: oldMessage.text,
+        replyToMessageId: oldMessage.replyToMessageId,
+        replyPreview: oldMessage.replyPreview,
+        attachments: oldMessage.attachments,
+        mentions: oldMessage.mentions,
+        reactions: oldMessage.reactions,
+        createdAt: oldMessage.createdAt,
+        updatedAt: oldMessage.updatedAt,
+        deletedAt: oldMessage.deletedAt,
+        isPinned: isPinned,
+        isStarred: oldMessage.isStarred,
+      );
+      notifyListeners();
+
+      try {
+        await _repo.pinMessage(scope: scope, conversationId: conversationId, messageId: messageId, isPinned: isPinned);
+      } catch (e) {
+        messages[index] = oldMessage;
+        notifyListeners();
+      }
+    }
+  }
+
   Future<void> markRead(ChatScope scope, String conversationId, String userId) =>
       _repo.markRead(scope: scope, conversationId: conversationId, userId: userId);
 

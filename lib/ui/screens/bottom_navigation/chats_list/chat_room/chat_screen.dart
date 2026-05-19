@@ -17,15 +17,22 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key, required this.receiver});
   final UserModel receiver;
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  ChatMessage? replyingTo;
 
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<UserProvider>(context).user;
     return ChangeNotifierProvider(
-      create: (context) => ChatViewmodel(ChatService(), currentUser!, receiver),
+      create: (context) => ChatViewmodel(ChatService(), currentUser!, widget.receiver),
       child: Consumer<ChatViewmodel>(builder: (context, model, _) {
         
         Future<void> handleMedia(File? file, MessageType type) async {
@@ -45,7 +52,7 @@ class ChatScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       35.verticalSpace,
-                      _buildHeader(context, name: receiver.name!),
+                      _buildHeader(context, name: widget.receiver.name!),
                       15.verticalSpace,
                       Expanded(
                         child: ListView.separated(
@@ -59,15 +66,7 @@ class ChatScreen extends StatelessWidget {
                               isMine: message.senderId == currentUser!.uid,
                               message: message,
                               onReply: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    backgroundColor: primary,
-                                    content: Text(
-                                      'Replying to: ${message.text ?? "Media"}',
-                                      style: body.copyWith(color: white),
-                                    ),
-                                  ),
-                                );
+                                setState(() => replyingTo = message);
                               },
                               onEdit: () {
                                 final editController = TextEditingController(text: message.text);
@@ -93,11 +92,11 @@ class ChatScreen extends StatelessWidget {
                               onStar: () => model.starMessage(message.id, !message.isStarred),
                               onPin: () => model.pinMessage(message.id, !message.isPinned),
                               onForward: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    backgroundColor: primary,
-                                    content: Text('Message forwarded!', style: body.copyWith(color: white)),
-                                  ),
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (_) => ForwardDestinationSheet(message: message),
                                 );
                               },
                             );
@@ -108,14 +107,28 @@ class ChatScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              if (replyingTo != null)
+                Container(
+                  color: const Color(0xFFF5F5F5),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(children: [
+                    Expanded(child: Text('Replying to: ${replyingTo?.text ?? "Media"}', maxLines: 1, overflow: TextOverflow.ellipsis, style: body.copyWith(color: grey))),
+                    IconButton(onPressed: () => setState(() => replyingTo = null), icon: const Icon(Icons.close, color: primary)),
+                  ]),
+                ),
               MessageComposer(
                 controller: model.controller,
                 onChanged: (_) {},
                 onSend: () async {
                   final text = model.controller.text.trim();
                   if (text.isNotEmpty) {
-                    await model.sendTextMessage(text);
+                    await model.sendTextMessage(
+                      text,
+                      replyTo: replyingTo?.id,
+                      replyPreview: replyingTo?.text,
+                    );
                     model.controller.clear();
+                    setState(() => replyingTo = null);
                   }
                 },
                 onImagePick: () async => handleMedia(await MediaService.instance.pickImage(ImageSource.gallery), MessageType.image),
@@ -128,7 +141,6 @@ class ChatScreen extends StatelessWidget {
       }),
     );
   }
-
 
   void _showContextMenu(BuildContext context, ChatViewmodel model, ChatMessage message) {
     showModalBottomSheet(context: context, builder: (_) => SafeArea(child: Wrap(children: [

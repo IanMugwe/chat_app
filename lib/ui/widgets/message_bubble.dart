@@ -1,10 +1,139 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import '../../core/models/chat_message.dart';
+import '../../core/models/user_model.dart';
+import '../../core/services/database_service.dart';
+import '../../core/services/chat_service.dart';
+import '../../ui/screens/other/user_provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/styles.dart';
 import 'media_preview.dart';
+
+class ForwardDestinationSheet extends StatefulWidget {
+  final ChatMessage message;
+
+  const ForwardDestinationSheet({super.key, required this.message});
+
+  @override
+  State<ForwardDestinationSheet> createState() => _ForwardDestinationSheetState();
+}
+
+class _ForwardDestinationSheetState extends State<ForwardDestinationSheet> {
+  List<UserModel> _users = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDestinations();
+  }
+
+  Future<void> _loadDestinations() async {
+    try {
+      final currentUserId = Provider.of<UserProvider>(context, listen: false).user?.uid ?? "";
+      final databaseService = DatabaseService();
+      final usersData = await databaseService.fetchUsers(currentUserId);
+      if (usersData != null) {
+        setState(() {
+          _users = usersData.map((data) => UserModel.fromMap(data)).toList();
+          _loading = false;
+        });
+      } else {
+        setState(() => _loading = false);
+      }
+    } catch (e) {
+      setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _forwardTo(BuildContext context, UserModel user) async {
+    final chatService = ChatService();
+    final currentUserId = Provider.of<UserProvider>(context, listen: false).user?.uid ?? "";
+    final currentUserName = Provider.of<UserProvider>(context, listen: false).user?.name ?? "";
+
+    String chatRoomId = "";
+    if (currentUserId.hashCode > user.uid!.hashCode) {
+      chatRoomId = "${currentUserId}_${user.uid}";
+    } else {
+      chatRoomId = "${user.uid}_$currentUserId";
+    }
+
+    try {
+      await chatService.sendMessage(
+        chatRoomId: chatRoomId,
+        senderId: currentUserId,
+        senderName: currentUserName,
+        text: "[Forwarded]: ${widget.message.text ?? ''}",
+        attachments: widget.message.attachments,
+      );
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: primary,
+          content: Text('Forwarded to ${user.name}!', style: body.copyWith(color: white)),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to forward message.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16.r),
+      decoration: BoxDecoration(
+        color: white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40.w,
+            height: 4.h,
+            decoration: BoxDecoration(color: grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2.r)),
+          ),
+          16.verticalSpace,
+          Text('Forward Message To', style: h.copyWith(color: primary, fontSize: 18.sp, fontWeight: FontWeight.bold)),
+          16.verticalSpace,
+          if (_loading)
+            const Center(child: CircularProgressIndicator())
+          else if (_users.isEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.h),
+              child: Text('No contacts found', style: body.copyWith(color: grey)),
+            )
+          else
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: 0.4.sh),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: _users.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final user = _users[index];
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: primary.withOpacity(0.1),
+                      child: Text(user.name?[0].toUpperCase() ?? '', style: body.copyWith(color: primary)),
+                    ),
+                    title: Text(user.name ?? '', style: body.copyWith(fontWeight: FontWeight.bold)),
+                    trailing: const Icon(Icons.send_rounded, color: primary),
+                    onTap: () => _forwardTo(context, user),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 enum MessageActionType {
   star,
@@ -214,6 +343,7 @@ class MessageBubble extends StatefulWidget {
     this.onForward,
     this.onRecreate,
     this.isAiChat = false,
+    this.onReact,
   });
 
   final ChatMessage message;
@@ -226,6 +356,7 @@ class MessageBubble extends StatefulWidget {
   final VoidCallback? onForward;
   final VoidCallback? onRecreate;
   final bool isAiChat;
+  final void Function(String emoji)? onReact;
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -276,6 +407,9 @@ class _MessageBubbleState extends State<MessageBubble> {
   @override
   Widget build(BuildContext context) {
     final bg = widget.isMine ? primary : grey.withOpacity(0.12);
+    final textStyle = body.copyWith(color: widget.isMine ? white : Colors.black87);
+    final timeStyle = small.copyWith(color: widget.isMine ? white.withOpacity(0.7) : grey);
+
     return SwipeToReply(
       onReply: widget.onReply,
       child: Align(
@@ -293,64 +427,110 @@ class _MessageBubbleState extends State<MessageBubble> {
                   ? Border.all(color: primary.withOpacity(0.5), width: 1.5)
                   : null,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.message.replyPreview != null)
-                  Container(
-                    margin: EdgeInsets.only(bottom: 6.h),
-                    padding: EdgeInsets.all(6.r),
-                    decoration: BoxDecoration(
-                      color: widget.isMine ? white.withOpacity(0.15) : Colors.black.withOpacity(.05),
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    child: Text(
-                      widget.message.replyPreview!,
-                      style: body.copyWith(
-                        fontSize: 12.sp,
-                        color: widget.isMine ? white : Colors.black87,
+            constraints: BoxConstraints(maxWidth: 1.sw * 0.75),
+            child: IntrinsicWidth(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!widget.isMine && widget.message.senderName != null)
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4.h),
+                      child: Text(
+                        widget.message.senderName!,
+                        style: small.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: primary,
+                          fontSize: 12.sp,
+                        ),
                       ),
                     ),
-                  ),
-                if (widget.message.isDeleted)
-                  Text(
-                    'This message was deleted',
-                    style: body.copyWith(
-                      fontStyle: FontStyle.italic,
-                      color: widget.isMine ? white : Colors.black54,
+                  if (widget.message.replyPreview != null)
+                    Container(
+                      margin: EdgeInsets.only(bottom: 6.h),
+                      padding: EdgeInsets.all(6.r),
+                      decoration: BoxDecoration(
+                        color: widget.isMine ? white.withOpacity(0.15) : Colors.black.withOpacity(.05),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Text(
+                        widget.message.replyPreview!,
+                        style: body.copyWith(
+                          fontSize: 12.sp,
+                          color: widget.isMine ? white : Colors.black87,
+                        ),
+                      ),
                     ),
-                  )
-                else ...[
-                  if (widget.message.text != null)
+                  if (widget.message.isDeleted)
                     Text(
-                      widget.message.text!,
+                      'This message was deleted',
                       style: body.copyWith(
-                        color: widget.isMine ? white : Colors.black87,
+                        fontStyle: FontStyle.italic,
+                        color: widget.isMine ? white : Colors.black54,
                       ),
-                    ),
-                  if (widget.message.attachments != null && widget.message.attachments.isNotEmpty)
+                    )
+                  else ...[
+                    if (widget.message.text != null)
+                      Text(
+                        widget.message.text!,
+                        style: textStyle,
+                      ),
+                    if (widget.message.attachments != null && widget.message.attachments.isNotEmpty)
+                      Padding(
+                        padding: EdgeInsets.only(top: 6.h),
+                        child: MediaPreview(attachments: widget.message.attachments, isOutgoing: widget.isMine),
+                      ),
+                  ],
+                  if (widget.message.reactions.isNotEmpty)
                     Padding(
                       padding: EdgeInsets.only(top: 6.h),
-                      child: MediaPreview(attachments: widget.message.attachments, isOutgoing: widget.isMine),
+                      child: Wrap(
+                        spacing: 4,
+                        children: widget.message.reactions.entries
+                            .where((e) => e.value.isNotEmpty)
+                            .map((e) => GestureDetector(
+                                  onTap: () => widget.onReact?.call(e.key),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                                    decoration: BoxDecoration(
+                                      color: widget.isMine ? white.withOpacity(0.2) : Colors.black.withOpacity(0.05),
+                                      borderRadius: BorderRadius.circular(10.r),
+                                    ),
+                                    child: Text(
+                                      '${e.key} ${e.value.length}',
+                                      style: body.copyWith(fontSize: 10.sp, color: widget.isMine ? white : Colors.black54),
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
                     ),
-                ],
-                if (widget.message.isStarred || widget.message.isPinned)
-                  Padding(
-                    padding: EdgeInsets.only(top: 4.h),
+                  4.verticalSpace,
+                  Align(
+                    alignment: Alignment.bottomRight,
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (widget.message.isStarred)
-                          Icon(Icons.star_rounded, size: 14.r, color: widget.isMine ? white : primary),
+                          Icon(Icons.star_rounded, size: 12.r, color: widget.isMine ? white.withOpacity(0.7) : primary),
                         if (widget.message.isStarred && widget.message.isPinned)
                           4.horizontalSpace,
                         if (widget.message.isPinned)
-                          Icon(Icons.push_pin_rounded, size: 14.r, color: widget.isMine ? white : primary),
+                          Icon(Icons.push_pin_rounded, size: 12.r, color: widget.isMine ? white.withOpacity(0.7) : primary),
+                        if (widget.message.isStarred || widget.message.isPinned)
+                          6.horizontalSpace,
+                        Text(
+                          widget.message.createdAt != null
+                              ? "${widget.message.createdAt!.hour}:${widget.message.createdAt!.minute.toString().padLeft(2, '0')}${widget.message.isEdited ? ' (edited)' : ''}"
+                              : "",
+                          style: timeStyle.copyWith(fontSize: 10.sp),
+                        ),
                       ],
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

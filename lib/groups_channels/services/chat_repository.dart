@@ -314,6 +314,30 @@ class ChatRepository {
     });
   }
 
+  Future<void> starMessage({
+    required ChatScope scope,
+    required String conversationId,
+    required String messageId,
+    required bool isStarred,
+  }) async {
+    await _messages(scope, conversationId).doc(messageId).update({
+      'isStarred': isStarred,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> pinMessage({
+    required ChatScope scope,
+    required String conversationId,
+    required String messageId,
+    required bool isPinned,
+  }) async {
+    await _messages(scope, conversationId).doc(messageId).update({
+      'isPinned': isPinned,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> markRead({
     required ChatScope scope,
     required String conversationId,

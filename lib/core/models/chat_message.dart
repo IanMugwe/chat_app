@@ -44,6 +44,7 @@ class ChatMessage {
   });
 
   bool get isDeleted => status == MessageStatus.deleted || deletedAt != null;
+  bool get isEdited => createdAt != null && updatedAt != null && updatedAt!.difference(createdAt!).inSeconds > 1;
 
   factory ChatMessage.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc, ChatScope scope, String conversationId) {
     final data = doc.data() ?? {};

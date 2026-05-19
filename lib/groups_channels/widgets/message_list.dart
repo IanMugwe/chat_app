@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chat_app/core/models/chat_message.dart';
-import 'message_bubble.dart';
+import 'package:chat_app/ui/widgets/message_bubble.dart';
 
 class MessageList extends StatelessWidget {
   const MessageList({
@@ -11,6 +11,8 @@ class MessageList extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onReact,
+    required this.onStar,
+    required this.onPin,
     this.loading = false,
   });
 
@@ -20,6 +22,8 @@ class MessageList extends StatelessWidget {
   final void Function(ChatMessage message) onEdit;
   final void Function(ChatMessage message) onDelete;
   final void Function(ChatMessage message, String emoji) onReact;
+  final void Function(ChatMessage message) onStar;
+  final void Function(ChatMessage message) onPin;
   final bool loading;
 
   @override
@@ -29,7 +33,7 @@ class MessageList extends StatelessWidget {
     return ListView.builder(
       reverse: true,
       itemCount: messages.length,
-      itemBuilder: (_, i) {
+      itemBuilder: (context, i) {
         final m = messages[i];
         return MessageBubble(
           message: m,
@@ -38,6 +42,16 @@ class MessageList extends StatelessWidget {
           onEdit: () => onEdit(m),
           onDelete: () => onDelete(m),
           onReact: (e) => onReact(m, e),
+          onStar: () => onStar(m),
+          onPin: () => onPin(m),
+          onForward: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => ForwardDestinationSheet(message: m),
+            );
+          },
         );
       },
     );
