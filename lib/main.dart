@@ -1,5 +1,6 @@
 import 'package:chat_app/core/services/database_service.dart';
 import 'package:chat_app/core/utils/route_utils.dart';
+import 'package:chat_app/core/constants/colors.dart';
 
 import 'package:chat_app/firebase_options.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
@@ -28,8 +29,27 @@ class ChatApp extends StatelessWidget {
     return ScreenUtilInit(
       builder: (context, child) => ChangeNotifierProvider(
         create: (context) => UserProvider(DatabaseService()),
-        child: const MaterialApp(
+        child: MaterialApp(
           debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primaryColor: primary,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: primary,
+              primary: primary,
+              secondary: primary,
+              surface: Colors.white,
+              onPrimary: Colors.white,
+            ),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.white,
+              foregroundColor: primary,
+              elevation: 0,
+              centerTitle: true,
+              iconTheme: IconThemeData(color: primary),
+            ),
+            scaffoldBackgroundColor: Colors.white,
+            useMaterial3: true,
+          ),
           onGenerateRoute: RouteUtils.onGenerateRoute,
           home: SplashScreen(),
         ),
