@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chat_app/core/models/chat_enums.dart';
+import 'package:chat_app/core/constants/colors.dart';
+import 'package:chat_app/core/constants/styles.dart';
 import '../../providers/conversations_provider.dart';
 import '../../services/chat_repository.dart';
 import '../../widgets/conversation_tile.dart';
@@ -27,29 +29,40 @@ class _ChannelsListScreenState extends State<ChannelsListScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<ConversationsProvider>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Channels')),
+      backgroundColor: white,
+      appBar: AppBar(
+        backgroundColor: white,
+        elevation: 0.5,
+        title: Text(
+          'Channels',
+          style: h.copyWith(color: primary, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: provider.loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.separated(
-              itemCount: provider.channels.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (_, i) {
-                final c = provider.channels[i];
-                return ConversationTile(
-                  conversation: c,
-                  currentUserId: widget.currentUserId,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(
-                    scope: ChatScope.channel,
-                    conversation: c,
-                    currentUserId: widget.currentUserId,
-                    currentUserName: widget.currentUserName,
-                    repository: ChatRepository(),
-                  ))),
-                );
-              },
-            ),
+          ? const Center(child: CircularProgressIndicator(color: primary))
+          : provider.channels.isEmpty
+              ? const Center(child: Text('No channels joined yet'))
+              : ListView.separated(
+                  itemCount: provider.channels.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                  itemBuilder: (_, i) {
+                    final c = provider.channels[i];
+                    return ConversationTile(
+                      conversation: c,
+                      currentUserId: widget.currentUserId,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(
+                        scope: ChatScope.channel,
+                        conversation: c,
+                        currentUserId: widget.currentUserId,
+                        currentUserName: widget.currentUserName,
+                        repository: ChatRepository(),
+                      ))),
+                    );
+                  },
+                ),
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
+        backgroundColor: primary,
+        child: const Icon(Icons.add, color: white),
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChannelCreateEditScreen(currentUserId: widget.currentUserId))),
       ),
     );

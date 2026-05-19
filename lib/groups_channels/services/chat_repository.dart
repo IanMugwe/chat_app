@@ -22,19 +22,23 @@ class ChatRepository {
   Stream<List<ChatConversation>> watchGroups(String userId) {
     return _db.collection('groups')
         .where('memberIds', arrayContains: userId)
-        .where('deletedAt', isNull: true)
         .orderBy('updatedAt', descending: true)
         .snapshots()
-        .map((s) => s.docs.map(ChatConversation.fromDoc).toList());
+        .map((s) => s.docs
+            .map(ChatConversation.fromDoc)
+            .where((c) => !c.deleted)
+            .toList());
   }
 
   Stream<List<ChatConversation>> watchChannels(String userId) {
     return _db.collection('channels')
         .where('subscriberIds', arrayContains: userId)
-        .where('deletedAt', isNull: true)
         .orderBy('updatedAt', descending: true)
         .snapshots()
-        .map((s) => s.docs.map(ChatConversation.fromDoc).toList());
+        .map((s) => s.docs
+            .map(ChatConversation.fromDoc)
+            .where((c) => !c.deleted)
+            .toList());
   }
 
   Future<String> createGroup({

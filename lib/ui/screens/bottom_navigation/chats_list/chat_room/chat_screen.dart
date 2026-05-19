@@ -8,6 +8,7 @@ import 'package:chat_app/core/models/chat_enums.dart';
 import 'package:chat_app/core/services/chat_service.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chat_room/chat_viewmodel.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chat_room/chat_widgets.dart';
+import 'package:chat_app/ui/widgets/message_bubble.dart';
 import 'package:chat_app/ui/widgets/media_service.dart';
 import 'package:chat_app/ui/widgets/message_composer.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
@@ -54,10 +55,51 @@ class ChatScreen extends StatelessWidget {
                           separatorBuilder: (_, __) => 10.verticalSpace,
                           itemBuilder: (context, index) {
                             final message = model.messages[index];
-                            return ChatBubble(
-                              isCurrentUser: message.senderId == currentUser!.uid,
+                            return MessageBubble(
+                              isMine: message.senderId == currentUser!.uid,
                               message: message,
-                              onLongPress: () => _showContextMenu(context, model, message),
+                              onReply: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: primary,
+                                    content: Text(
+                                      'Replying to: ${message.text ?? "Media"}',
+                                      style: body.copyWith(color: white),
+                                    ),
+                                  ),
+                                );
+                              },
+                              onEdit: () {
+                                final editController = TextEditingController(text: message.text);
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: const Text('Edit Message'),
+                                    content: TextField(controller: editController),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                                      TextButton(
+                                        onPressed: () {
+                                          model.editMessage(message.id, editController.text.trim());
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Save'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              onDelete: () => model.deleteMessage(message.id),
+                              onStar: () => model.starMessage(message.id, !message.isStarred),
+                              onPin: () => model.pinMessage(message.id, !message.isPinned),
+                              onForward: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: primary,
+                                    content: Text('Message forwarded!', style: body.copyWith(color: white)),
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),

@@ -19,6 +19,8 @@ class ChatMessage {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final DateTime? deletedAt;
+  final bool isPinned;
+  final bool isStarred;
 
   const ChatMessage({
     required this.id,
@@ -37,6 +39,8 @@ class ChatMessage {
     this.createdAt,
     this.updatedAt,
     this.deletedAt,
+    this.isPinned = false,
+    this.isStarred = false,
   });
 
   bool get isDeleted => status == MessageStatus.deleted || deletedAt != null;
@@ -63,6 +67,8 @@ class ChatMessage {
       createdAt: data['createdAt']?.toDate(),
       updatedAt: data['updatedAt']?.toDate(),
       deletedAt: data['deletedAt']?.toDate(),
+      isPinned: data['isPinned'] as bool? ?? false,
+      isStarred: data['isStarred'] as bool? ?? false,
     );
   }
 
@@ -79,5 +85,7 @@ class ChatMessage {
         'reactions': reactions,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+        'isPinned': isPinned,
+        'isStarred': isStarred,
       };
 }

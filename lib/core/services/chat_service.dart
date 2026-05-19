@@ -65,4 +65,16 @@ class ChatService {
       'attachments': [],
     });
   }
+
+  Future<void> starMessage(String chatRoomId, String messageId, bool isStarred) async {
+    await _fire.collection("chatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
+      'isStarred': isStarred,
+    });
+  }
+
+  Future<void> pinMessage(String chatRoomId, String messageId, bool isPinned) async {
+    await _fire.collection("chatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
+      'isPinned': isPinned,
+    });
+  }
 }
