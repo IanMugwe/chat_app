@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:chat_app/core/providers/ui_theme_provider.dart';
 import '../bottom_navigation/profile/profile_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -41,7 +43,9 @@ class SettingsScreen extends StatelessWidget {
             icon: Icons.palette_rounded,
             title: 'Appearance',
             subtitle: 'Theme, wallpapers, and chat colors',
-            onTap: () {},
+            onTap: () {
+              _showThemeSelector(context);
+            },
           ),
           const SizedBox(height: 12),
           _buildSettingsTile(
@@ -119,6 +123,111 @@ class SettingsScreen extends StatelessWidget {
         onTap: onTap,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
+    );
+  }
+
+  void _showThemeSelector(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Consumer<UiThemeProvider>(
+          builder: (context, provider, _) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Customize Theme',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Choose a premium preset styling for yCHAT',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey,
+                          ),
+                    ),
+                    const SizedBox(height: 24),
+                    ...provider.presets.map((preset) {
+                      final isSelected = provider.activePreset.id == preset.id;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: InkWell(
+                          onTap: () {
+                            provider.selectPreset(preset.id);
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isSelected
+                                    ? preset.primaryAccent
+                                    : Colors.grey.withOpacity(0.2),
+                                width: isSelected ? 2 : 1,
+                              ),
+                              gradient: LinearGradient(
+                                colors: preset.backgroundGradient,
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: preset.primaryAccent,
+                                  radius: 12,
+                                  child: isSelected
+                                      ? const Icon(Icons.check, size: 14, color: Colors.white)
+                                      : null,
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  preset.name,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: preset.isDark ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: preset.mineBubbleColor.withOpacity(0.3),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    'Glass Bubble',
+                                    style: TextStyle(
+                                      color: preset.isDark ? Colors.white70 : Colors.black87,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

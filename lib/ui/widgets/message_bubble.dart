@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,6 +10,7 @@ import '../../core/services/chat_service.dart';
 import '../../ui/screens/other/user_provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/styles.dart';
+import '../../core/providers/ui_theme_provider.dart';
 import 'media_preview.dart';
 
 class ForwardDestinationSheet extends StatefulWidget {
@@ -406,9 +408,20 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   @override
   Widget build(BuildContext context) {
-    final bg = widget.isMine ? primary : grey.withOpacity(0.12);
-    final textStyle = body.copyWith(color: widget.isMine ? white : Colors.black87);
-    final timeStyle = small.copyWith(color: widget.isMine ? white.withOpacity(0.7) : grey);
+    final uiTheme = Provider.of<UiThemeProvider>(context);
+    final active = uiTheme.activePreset;
+
+    final bg = widget.isMine ? active.mineBubbleColor : active.otherBubbleColor;
+    final textStyle = body.copyWith(
+      color: widget.isMine 
+          ? (active.isDark ? Colors.white : Colors.white) 
+          : (active.isDark ? Colors.white70 : Colors.black87)
+    );
+    final timeStyle = small.copyWith(
+      color: widget.isMine 
+          ? Colors.white.withOpacity(0.7) 
+          : (active.isDark ? Colors.white38 : Colors.grey)
+    );
 
     return SwipeToReply(
       onReply: widget.onReply,
@@ -419,117 +432,128 @@ class _MessageBubbleState extends State<MessageBubble> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-            padding: EdgeInsets.all(12.r),
-            decoration: BoxDecoration(
-              color: _isHighlighted ? bg.withOpacity(widget.isMine ? 0.8 : 0.25) : bg,
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(16.r),
-              border: _isHighlighted
-                  ? Border.all(color: primary.withOpacity(0.5), width: 1.5)
-                  : null,
-            ),
-            constraints: BoxConstraints(maxWidth: 1.sw * 0.75),
-            child: IntrinsicWidth(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!widget.isMine && widget.message.senderName != null)
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4.h),
-                      child: Text(
-                        widget.message.senderName!,
-                        style: small.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: primary,
-                          fontSize: 12.sp,
-                        ),
-                      ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Container(
+                  padding: EdgeInsets.all(12.r),
+                  decoration: BoxDecoration(
+                    color: _isHighlighted
+                        ? bg.withOpacity(widget.isMine ? 0.95 : 0.45)
+                        : bg.withOpacity(active.isDark ? 0.35 : 0.85),
+                    borderRadius: BorderRadius.circular(16.r),
+                    border: Border.all(
+                      color: active.primaryAccent.withOpacity(_isHighlighted ? 0.5 : 0.12),
+                      width: 1,
                     ),
-                  if (widget.message.replyPreview != null)
-                    Container(
-                      margin: EdgeInsets.only(bottom: 6.h),
-                      padding: EdgeInsets.all(6.r),
-                      decoration: BoxDecoration(
-                        color: widget.isMine ? white.withOpacity(0.15) : Colors.black.withOpacity(.05),
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Text(
-                        widget.message.replyPreview!,
-                        style: body.copyWith(
-                          fontSize: 12.sp,
-                          color: widget.isMine ? white : Colors.black87,
-                        ),
-                      ),
-                    ),
-                  if (widget.message.isDeleted)
-                    Text(
-                      'This message was deleted',
-                      style: body.copyWith(
-                        fontStyle: FontStyle.italic,
-                        color: widget.isMine ? white : Colors.black54,
-                      ),
-                    )
-                  else ...[
-                    if (widget.message.text != null)
-                      Text(
-                        widget.message.text!,
-                        style: textStyle,
-                      ),
-                    if (widget.message.attachments != null && widget.message.attachments.isNotEmpty)
-                      Padding(
-                        padding: EdgeInsets.only(top: 6.h),
-                        child: MediaPreview(attachments: widget.message.attachments, isOutgoing: widget.isMine),
-                      ),
-                  ],
-                  if (widget.message.reactions.isNotEmpty)
-                    Padding(
-                      padding: EdgeInsets.only(top: 6.h),
-                      child: Wrap(
-                        spacing: 4,
-                        children: widget.message.reactions.entries
-                            .where((e) => e.value.isNotEmpty)
-                            .map((e) => GestureDetector(
-                                  onTap: () => widget.onReact?.call(e.key),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                                    decoration: BoxDecoration(
-                                      color: widget.isMine ? white.withOpacity(0.2) : Colors.black.withOpacity(0.05),
-                                      borderRadius: BorderRadius.circular(10.r),
-                                    ),
-                                    child: Text(
-                                      '${e.key} ${e.value.length}',
-                                      style: body.copyWith(fontSize: 10.sp, color: widget.isMine ? white : Colors.black54),
-                                    ),
-                                  ),
-                                ))
-                            .toList(),
-                      ),
-                    ),
-                  4.verticalSpace,
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                  ),
+                  constraints: BoxConstraints(maxWidth: 1.sw * 0.75),
+                  child: IntrinsicWidth(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (widget.message.isStarred)
-                          Icon(Icons.star_rounded, size: 12.r, color: widget.isMine ? white.withOpacity(0.7) : primary),
-                        if (widget.message.isStarred && widget.message.isPinned)
-                          4.horizontalSpace,
-                        if (widget.message.isPinned)
-                          Icon(Icons.push_pin_rounded, size: 12.r, color: widget.isMine ? white.withOpacity(0.7) : primary),
-                        if (widget.message.isStarred || widget.message.isPinned)
-                          6.horizontalSpace,
-                        Text(
-                          widget.message.createdAt != null
-                              ? "${widget.message.createdAt!.hour}:${widget.message.createdAt!.minute.toString().padLeft(2, '0')}${widget.message.isEdited ? ' (edited)' : ''}"
-                              : "",
-                          style: timeStyle.copyWith(fontSize: 10.sp),
+                        if (!widget.isMine && widget.message.senderName != null)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 4.h),
+                            child: Text(
+                              widget.message.senderName!,
+                              style: small.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: active.primaryAccent,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                          ),
+                        if (widget.message.replyPreview != null)
+                          Container(
+                            margin: EdgeInsets.only(bottom: 6.h),
+                            padding: EdgeInsets.all(6.r),
+                            decoration: BoxDecoration(
+                              color: widget.isMine ? Colors.white.withOpacity(0.15) : Colors.black.withOpacity(.05),
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Text(
+                              widget.message.replyPreview!,
+                              style: body.copyWith(
+                                fontSize: 12.sp,
+                                color: widget.isMine ? Colors.white : (active.isDark ? Colors.white70 : Colors.black87),
+                              ),
+                            ),
+                          ),
+                        if (widget.message.isDeleted)
+                          Text(
+                            'This message was deleted',
+                            style: body.copyWith(
+                              fontStyle: FontStyle.italic,
+                              color: widget.isMine ? Colors.white70 : (active.isDark ? Colors.white54 : Colors.black54),
+                            ),
+                          )
+                        else ...[
+                          if (widget.message.text != null)
+                            Text(
+                              widget.message.text!,
+                              style: textStyle,
+                            ),
+                          if (widget.message.attachments != null && widget.message.attachments.isNotEmpty)
+                            Padding(
+                              padding: EdgeInsets.only(top: 6.h),
+                              child: MediaPreview(attachments: widget.message.attachments, isOutgoing: widget.isMine),
+                            ),
+                        ],
+                        if (widget.message.reactions.isNotEmpty)
+                          Padding(
+                            padding: EdgeInsets.only(top: 6.h),
+                            child: Wrap(
+                              spacing: 4,
+                              children: widget.message.reactions.entries
+                                  .where((e) => e.value.isNotEmpty)
+                                  .map((e) => GestureDetector(
+                                        onTap: () => widget.onReact?.call(e.key),
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                                          decoration: BoxDecoration(
+                                            color: widget.isMine ? Colors.white.withOpacity(0.2) : Colors.black.withOpacity(0.05),
+                                            borderRadius: BorderRadius.circular(10.r),
+                                          ),
+                                          child: Text(
+                                            '${e.key} ${e.value.length}',
+                                            style: body.copyWith(fontSize: 10.sp, color: widget.isMine ? Colors.white : (active.isDark ? Colors.white70 : Colors.black54)),
+                                          ),
+                                        ),
+                                      ))
+                                  .toList(),
+                            ),
+                          ),
+                        4.verticalSpace,
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (widget.message.isStarred)
+                                Icon(Icons.star_rounded, size: 12.r, color: widget.isMine ? Colors.white.withOpacity(0.7) : active.primaryAccent),
+                              if (widget.message.isStarred && widget.message.isPinned)
+                                4.horizontalSpace,
+                              if (widget.message.isPinned)
+                                Icon(Icons.push_pin_rounded, size: 12.r, color: widget.isMine ? Colors.white.withOpacity(0.7) : active.primaryAccent),
+                              if (widget.message.isStarred || widget.message.isPinned)
+                                6.horizontalSpace,
+                              Text(
+                                widget.message.createdAt != null
+                                    ? "${widget.message.createdAt!.hour}:${widget.message.createdAt!.minute.toString().padLeft(2, '0')}${widget.message.isEdited ? ' (edited)' : ''}"
+                                    : "",
+                                style: timeStyle.copyWith(fontSize: 10.sp),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ),
