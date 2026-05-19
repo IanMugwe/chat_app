@@ -31,23 +31,18 @@ class ChatsListScreen extends StatelessWidget {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: Text(
-              'yCHAT',
+              'ychat',
               style: h.copyWith(
-                color: active.primaryAccent,
-                fontSize: 24.sp,
+                color: active.isDark ? Colors.white : Colors.black87,
+                fontSize: 26.sp,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
+                letterSpacing: -0.5,
               ),
             ),
             actions: [
-              IconButton(
-                icon: Icon(Icons.camera_alt_outlined, color: active.primaryAccent),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: Icon(Icons.more_vert, color: active.primaryAccent),
-                onPressed: () {},
-              ),
+              _buildTopActionIcon(Icons.search_rounded, () {}, active),
+              _buildTopActionIcon(Icons.camera_alt_outlined, () {}, active),
+              _buildTopActionIcon(Icons.more_vert_rounded, () {}, active),
             ],
           ),
           body: Container(
@@ -67,110 +62,6 @@ class ChatsListScreen extends StatelessWidget {
                     isSearch: true,
                     hintText: "Search chats or messages",
                     onChanged: model.search,
-                  ),
-                ),
-                // Horizontal Stories Strip (Screenshot #2 layout representation)
-                Padding(
-                  padding: EdgeInsets.only(left: 16.w, bottom: 8.h),
-                  child: Text(
-                    "Stories",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.sp,
-                      color: active.isDark ? Colors.white70 : Colors.black87,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 105.h,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    itemCount: model.filteredUsers.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return Padding(
-                          padding: EdgeInsets.only(right: 12.w),
-                          child: Column(
-                            children: [
-                              Container(
-                                height: 70.h,
-                                width: 56.w,
-                                decoration: BoxDecoration(
-                                  color: active.isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  border: Border.all(
-                                    color: active.isDark ? Colors.white24 : Colors.black12,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: const Icon(Icons.add, color: Colors.grey),
-                              ),
-                              6.verticalSpace,
-                              Text(
-                                'You',
-                                style: small.copyWith(
-                                  color: active.isDark ? Colors.white60 : Colors.black54,
-                                  fontSize: 11.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                      final user = model.filteredUsers[index - 1];
-                      return Padding(
-                        padding: EdgeInsets.only(right: 12.w),
-                        child: Column(
-                          children: [
-                            Container(
-                              height: 70.h,
-                              width: 56.w,
-                              decoration: BoxDecoration(
-                                color: active.primaryAccent.withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(12.r),
-                                border: Border.all(
-                                  color: active.primaryAccent.withOpacity(0.6),
-                                  width: 1.5,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: user.imageUrl == null
-                                  ? CircleAvatar(
-                                      radius: 20.r,
-                                      backgroundColor: active.primaryAccent.withOpacity(0.12),
-                                      child: Text(
-                                        user.name?[0].toUpperCase() ?? '',
-                                        style: body.copyWith(
-                                          color: active.primaryAccent,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    )
-                                  : ClipRRect(
-                                      borderRadius: BorderRadius.circular(10.r),
-                                      child: Image.network(
-                                        user.imageUrl!,
-                                        fit: BoxFit.cover,
-                                        height: 70.h,
-                                        width: 56.w,
-                                      ),
-                                    ),
-                            ),
-                            6.verticalSpace,
-                            Text(
-                              user.name ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: small.copyWith(
-                                color: active.isDark ? Colors.white60 : Colors.black54,
-                                fontSize: 11.sp,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
                   ),
                 ),
                 10.verticalSpace,
@@ -292,6 +183,24 @@ class ChatsListScreen extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildTopActionIcon(IconData icon, VoidCallback onTap, UiThemePreset activePreset) {
+    return Container(
+      margin: EdgeInsets.only(right: 8.w),
+      height: 36.r,
+      width: 36.r,
+      decoration: BoxDecoration(
+        color: activePreset.isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18.r),
+        child: Icon(icon, color: activePreset.isDark ? Colors.white70 : Colors.black87, size: 18.r),
+      ),
     );
   }
 
