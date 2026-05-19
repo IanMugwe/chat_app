@@ -13,8 +13,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
-class ChatsListScreen extends StatelessWidget {
+class ChatsListScreen extends StatefulWidget {
   const ChatsListScreen({super.key});
+
+  @override
+  State<ChatsListScreen> createState() => _ChatsListScreenState();
+}
+
+class _ChatsListScreenState extends State<ChatsListScreen> {
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,17 +44,48 @@ class ChatsListScreen extends StatelessWidget {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            title: Text(
-              'ychat',
-              style: h.copyWith(
-                color: active.isDark ? Colors.white : Colors.black87,
-                fontSize: 26.sp,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
-              ),
-            ),
+            centerTitle: false,
+            title: _isSearching
+                ? TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    style: TextStyle(
+                      color: active.isDark ? Colors.white : Colors.black87,
+                      fontSize: 16.sp,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Search chats or messages...',
+                      hintStyle: TextStyle(
+                        color: active.isDark ? Colors.white38 : Colors.black38,
+                        fontSize: 14.sp,
+                      ),
+                      border: InputBorder.none,
+                    ),
+                    onChanged: model.search,
+                  )
+                : Text(
+                    'ychat',
+                    style: h.copyWith(
+                      color: active.isDark ? Colors.white : Colors.black87,
+                      fontSize: 26.sp,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
             actions: [
-              _buildTopActionIcon(Icons.search_rounded, () {}, active),
+              _buildTopActionIcon(
+                _isSearching ? Icons.close_rounded : Icons.search_rounded,
+                () {
+                  setState(() {
+                    _isSearching = !_isSearching;
+                    if (!_isSearching) {
+                      _searchController.clear();
+                      model.search('');
+                    }
+                  });
+                },
+                active,
+              ),
               _buildTopActionIcon(Icons.camera_alt_outlined, () {}, active),
               _buildTopActionIcon(Icons.more_vert_rounded, () {}, active),
             ],
@@ -56,14 +101,6 @@ class ChatsListScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                  child: CustomTextfield(
-                    isSearch: true,
-                    hintText: "Search chats or messages",
-                    onChanged: model.search,
-                  ),
-                ),
                 10.verticalSpace,
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -82,33 +119,7 @@ class ChatsListScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                8.verticalSpace,
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  child: Row(
-                    children: [
-                      Icon(Icons.archive_outlined, color: active.isDark ? Colors.white38 : grey, size: 24.r),
-                      16.horizontalSpace,
-                      Text(
-                        'Archived',
-                        style: body.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16.sp,
-                          color: active.isDark ? Colors.white70 : Colors.black87,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '1',
-                        style: small.copyWith(
-                          color: active.primaryAccent,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12.sp,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                10.verticalSpace,
                 const Divider(height: 1, color: Colors.transparent),
               model.state == ViewState.loading
                   ? const Expanded(

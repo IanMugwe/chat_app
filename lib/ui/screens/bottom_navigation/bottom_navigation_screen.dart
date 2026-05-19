@@ -93,7 +93,7 @@ class CustomNavBar extends StatelessWidget {
     final borderRadius = BorderRadius.circular(32.r);
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 20.h),
+      padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 10.h),
       child: Container(
         decoration: BoxDecoration(
           color: active.isDark ? Colors.white.withOpacity(0.08) : Colors.white.withOpacity(0.85),
