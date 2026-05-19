@@ -17,6 +17,13 @@ class UserModel {
       this.lastMessage,
       this.unreadCounter});
 
+  String get username {
+    if (email != null && email!.contains('@')) {
+      return email!.split('@').first.toLowerCase();
+    }
+    return name?.replaceAll(' ', '_').toLowerCase() ?? 'user';
+  }
+
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'uid': uid,

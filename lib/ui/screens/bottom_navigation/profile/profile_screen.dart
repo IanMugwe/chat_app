@@ -9,6 +9,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = Provider.of<UserProvider>(context).user;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
@@ -24,24 +25,27 @@ class ProfileScreen extends StatelessWidget {
             CircleAvatar(
               radius: 50,
               backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              child: Icon(
-                Icons.person_rounded,
-                size: 60,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              backgroundImage: currentUser?.imageUrl != null ? NetworkImage(currentUser!.imageUrl!) : null,
+              child: currentUser?.imageUrl == null
+                  ? Icon(
+                      Icons.person_rounded,
+                      size: 60,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : null,
             ),
             const SizedBox(height: 16),
             
             // Name & Username
             Text(
-              'John Doe',
+              currentUser?.name ?? 'No Name',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 4),
             Text(
-              '@john_doe',
+              '@${currentUser?.username ?? 'username'}',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.grey.shade600,
                   ),
@@ -50,7 +54,7 @@ class ProfileScreen extends StatelessWidget {
             
             // Bio
             Text(
-              '"Building cool apps"',
+              '"Hey there! I am using yCHAT."',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontStyle: FontStyle.italic,
@@ -90,11 +94,11 @@ class ProfileScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               child: Column(
                 children: [
-                  _buildInfoTile(context, Icons.email_rounded, 'Email', 'john.doe@example.com'),
+                  _buildInfoTile(context, Icons.email_rounded, 'Email', currentUser?.email ?? 'No email'),
                   const Divider(height: 1, indent: 56, endIndent: 16),
-                  _buildInfoTile(context, Icons.phone_rounded, 'Phone', '+1 234 567 8900'),
+                  _buildInfoTile(context, Icons.phone_rounded, 'Phone', 'Not set'),
                   const Divider(height: 1, indent: 56, endIndent: 16),
-                  _buildInfoTile(context, Icons.alternate_email_rounded, 'Username', '@john_doe'),
+                  _buildInfoTile(context, Icons.alternate_email_rounded, 'Username', '@${currentUser?.username ?? 'username'}'),
                 ],
               ),
             ),
@@ -106,7 +110,7 @@ class ProfileScreen extends StatelessWidget {
               onPressed: () {
                 Provider.of<UserProvider>(context, listen: false).clearUser();
                 AuthService().logout();
-                // Optionally pop the profile screen if needed, but wrapper usually handles state
+                Navigator.popUntil(context, (route) => route.isFirst);
               },
             ),
             const SizedBox(height: 40),
