@@ -4,6 +4,7 @@ import 'package:chat_app/core/constants/styles.dart';
 import 'package:chat_app/core/enums/enums.dart';
 import 'package:chat_app/core/models/user_model.dart';
 import 'package:chat_app/core/services/database_service.dart';
+import 'package:chat_app/core/providers/ui_theme_provider.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chat_list_viewmodel.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
 import 'package:chat_app/ui/widgets/textfield_widget.dart';
@@ -18,76 +19,206 @@ class ChatsListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<UserProvider>(context).user;
+    final uiTheme = Provider.of<UiThemeProvider>(context);
+    final active = uiTheme.activePreset;
+
     return ChangeNotifierProvider(
       create: (context) => ChatListViewmodel(DatabaseService(), currentUser!),
       child: Consumer<ChatListViewmodel>(builder: (context, model, _) {
         return Scaffold(
-          backgroundColor: white,
+          backgroundColor: Colors.transparent,
           appBar: AppBar(
-            backgroundColor: white,
-            elevation: 0.5,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             title: Text(
               'yCHAT',
-              style: h.copyWith(color: primary, fontSize: 22.sp, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+              style: h.copyWith(
+                color: active.primaryAccent,
+                fontSize: 24.sp,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.camera_alt_outlined, color: primary),
+                icon: Icon(Icons.camera_alt_outlined, color: active.primaryAccent),
                 onPressed: () {},
               ),
               IconButton(
-                icon: const Icon(Icons.more_vert, color: primary),
+                icon: Icon(Icons.more_vert, color: active.primaryAccent),
                 onPressed: () {},
               ),
             ],
           ),
-          body: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                child: CustomTextfield(
-                  isSearch: true,
-                  hintText: "Search chats or messages",
-                  onChanged: model.search,
-                ),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: active.backgroundGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-                child: Row(
-                  children: [
-                    _buildCategoryChip('All', isActive: true),
-                    8.horizontalSpace,
-                    _buildCategoryChip('Unread', count: 42),
-                    8.horizontalSpace,
-                    _buildCategoryChip('Favorites'),
-                    8.horizontalSpace,
-                    _buildCategoryChip('Groups', count: 8),
-                    8.horizontalSpace,
-                    _buildCategoryChip('+'),
-                  ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  child: CustomTextfield(
+                    isSearch: true,
+                    hintText: "Search chats or messages",
+                    onChanged: model.search,
+                  ),
                 ),
-              ),
-              8.verticalSpace,
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                child: Row(
-                  children: [
-                    Icon(Icons.archive_outlined, color: grey, size: 24.r),
-                    16.horizontalSpace,
-                    Text(
-                      'Archived',
-                      style: body.copyWith(fontWeight: FontWeight.bold, fontSize: 16.sp, color: Colors.black87),
+                // Horizontal Stories Strip (Screenshot #2 layout representation)
+                Padding(
+                  padding: EdgeInsets.only(left: 16.w, bottom: 8.h),
+                  child: Text(
+                    "Stories",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.sp,
+                      color: active.isDark ? Colors.white70 : Colors.black87,
                     ),
-                    const Spacer(),
-                    Text(
-                      '1',
-                      style: small.copyWith(color: primary, fontWeight: FontWeight.bold, fontSize: 12.sp),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                SizedBox(
+                  height: 105.h,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    itemCount: model.filteredUsers.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        return Padding(
+                          padding: EdgeInsets.only(right: 12.w),
+                          child: Column(
+                            children: [
+                              Container(
+                                height: 70.h,
+                                width: 56.w,
+                                decoration: BoxDecoration(
+                                  color: active.isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  border: Border.all(
+                                    color: active.isDark ? Colors.white24 : Colors.black12,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: const Icon(Icons.add, color: Colors.grey),
+                              ),
+                              6.verticalSpace,
+                              Text(
+                                'You',
+                                style: small.copyWith(
+                                  color: active.isDark ? Colors.white60 : Colors.black54,
+                                  fontSize: 11.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      final user = model.filteredUsers[index - 1];
+                      return Padding(
+                        padding: EdgeInsets.only(right: 12.w),
+                        child: Column(
+                          children: [
+                            Container(
+                              height: 70.h,
+                              width: 56.w,
+                              decoration: BoxDecoration(
+                                color: active.primaryAccent.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(12.r),
+                                border: Border.all(
+                                  color: active.primaryAccent.withOpacity(0.6),
+                                  width: 1.5,
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: user.imageUrl == null
+                                  ? CircleAvatar(
+                                      radius: 20.r,
+                                      backgroundColor: active.primaryAccent.withOpacity(0.12),
+                                      child: Text(
+                                        user.name?[0].toUpperCase() ?? '',
+                                        style: body.copyWith(
+                                          color: active.primaryAccent,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(10.r),
+                                      child: Image.network(
+                                        user.imageUrl!,
+                                        fit: BoxFit.cover,
+                                        height: 70.h,
+                                        width: 56.w,
+                                      ),
+                                    ),
+                            ),
+                            6.verticalSpace,
+                            Text(
+                              user.name ?? '',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: small.copyWith(
+                                color: active.isDark ? Colors.white60 : Colors.black54,
+                                fontSize: 11.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                10.verticalSpace,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  child: Row(
+                    children: [
+                      _buildCategoryChip('All', isActive: true, activePreset: active),
+                      8.horizontalSpace,
+                      _buildCategoryChip('Unread', count: 4, activePreset: active),
+                      8.horizontalSpace,
+                      _buildCategoryChip('Favorites', activePreset: active),
+                      8.horizontalSpace,
+                      _buildCategoryChip('Groups', count: 8, activePreset: active),
+                      8.horizontalSpace,
+                      _buildCategoryChip('Channels', count: 3, activePreset: active),
+                    ],
+                  ),
+                ),
+                8.verticalSpace,
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  child: Row(
+                    children: [
+                      Icon(Icons.archive_outlined, color: active.isDark ? Colors.white38 : grey, size: 24.r),
+                      16.horizontalSpace,
+                      Text(
+                        'Archived',
+                        style: body.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.sp,
+                          color: active.isDark ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '1',
+                        style: small.copyWith(
+                          color: active.primaryAccent,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1, color: Colors.transparent),
               model.state == ViewState.loading
                   ? const Expanded(
                       child: Center(
@@ -119,7 +250,8 @@ class ChatsListScreen extends StatelessWidget {
                         )
             ],
           ),
-          floatingActionButton: Padding(
+        ),
+        floatingActionButton: Padding(
             padding: EdgeInsets.only(bottom: 12.h, right: 4.w),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -129,7 +261,7 @@ class ChatsListScreen extends StatelessWidget {
                   width: 42.r,
                   child: FloatingActionButton(
                     heroTag: 'ai_chat',
-                    backgroundColor: primary.withOpacity(0.12),
+                    backgroundColor: active.primaryAccent.withOpacity(0.15),
                     elevation: 2,
                     onPressed: () {
                       Navigator.push(
@@ -137,19 +269,19 @@ class ChatsListScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const AiChatScreen()),
                       );
                     },
-                    child: const Icon(Icons.auto_awesome, color: primary, size: 20),
+                    child: Icon(Icons.auto_awesome, color: active.primaryAccent, size: 20),
                   ),
                 ),
                 12.verticalSpace,
                 FloatingActionButton(
                   heroTag: 'new_chat',
-                  backgroundColor: primary,
+                  backgroundColor: active.primaryAccent,
                   elevation: 4,
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: const Text('Start New Chat feature coming soon!'),
-                        backgroundColor: primary,
+                        backgroundColor: active.primaryAccent,
                       ),
                     );
                   },
@@ -163,14 +295,18 @@ class ChatsListScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryChip(String label, {bool isActive = false, int? count}) {
+  Widget _buildCategoryChip(String label, {bool isActive = false, int? count, required UiThemePreset activePreset}) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: isActive 
-            ? primary.withOpacity(0.12) 
-            : const Color(0xFFF5F5F5),
+            ? activePreset.primaryAccent 
+            : (activePreset.isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04)),
         borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: isActive ? Colors.transparent : (activePreset.isDark ? Colors.white12 : Colors.black12),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -178,7 +314,7 @@ class ChatsListScreen extends StatelessWidget {
           Text(
             label,
             style: body.copyWith(
-              color: isActive ? primary : Colors.black87,
+              color: isActive ? Colors.white : (activePreset.isDark ? Colors.white70 : Colors.black87),
               fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
               fontSize: 13.sp,
             ),
@@ -188,7 +324,7 @@ class ChatsListScreen extends StatelessWidget {
             Text(
               '$count',
               style: small.copyWith(
-                color: isActive ? primary : Colors.grey,
+                color: isActive ? Colors.white70 : activePreset.primaryAccent,
                 fontWeight: FontWeight.bold,
                 fontSize: 10.sp,
               ),
@@ -207,57 +343,80 @@ class ChatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      tileColor: white,
-      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-      leading: user.imageUrl == null
-          ? CircleAvatar(
-              backgroundColor: primary.withOpacity(0.1),
-              radius: 25.r,
-              child: Text(
-                user.name![0].toUpperCase(),
-                style: h.copyWith(color: primary, fontSize: 20.sp),
-              ),
-            )
-          : ClipOval(
-              child: Image.network(
-                user.imageUrl!,
-                height: 50.r,
-                width: 50.r,
-                fit: BoxFit.cover,
-              ),
-            ),
-      title: Text(
-        user.name!,
-        style: body.copyWith(fontWeight: FontWeight.bold, fontSize: 16.sp, color: Colors.black87),
-      ),
-      subtitle: Text(
-        user.lastMessage != null ? user.lastMessage!["content"] : "No messages yet",
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: body.copyWith(color: grey, fontSize: 14.sp),
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            user.lastMessage == null ? "" : getTime(),
-            style: small.copyWith(color: grey),
+    final uiTheme = Provider.of<UiThemeProvider>(context);
+    final active = uiTheme.activePreset;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+      child: Container(
+        decoration: BoxDecoration(
+          color: active.isDark ? Colors.white.withOpacity(0.03) : Colors.white.withOpacity(0.4),
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(
+            color: active.isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
+            width: 1,
           ),
-          6.verticalSpace,
-          user.unreadCounter == 0 || user.unreadCounter == null
-              ? const SizedBox(height: 18)
-              : CircleAvatar(
-                  radius: 9.r,
-                  backgroundColor: primary,
+        ),
+        child: ListTile(
+          onTap: onTap,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+          leading: user.imageUrl == null
+              ? CircleAvatar(
+                  backgroundColor: active.primaryAccent.withOpacity(0.12),
+                  radius: 25.r,
                   child: Text(
-                    "${user.unreadCounter}",
-                    style: small.copyWith(color: white, fontSize: 10.sp, fontWeight: FontWeight.bold),
+                    user.name![0].toUpperCase(),
+                    style: h.copyWith(color: active.primaryAccent, fontSize: 20.sp, fontWeight: FontWeight.bold),
                   ),
                 )
-        ],
+              : ClipOval(
+                  child: Image.network(
+                    user.imageUrl!,
+                    height: 50.r,
+                    width: 50.r,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+          title: Text(
+            user.name!,
+            style: body.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 16.sp,
+              color: active.isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          subtitle: Text(
+            user.lastMessage != null ? user.lastMessage!["content"] : "No messages yet",
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: body.copyWith(
+              color: active.isDark ? Colors.white54 : grey,
+              fontSize: 14.sp,
+            ),
+          ),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                user.lastMessage == null ? "" : getTime(),
+                style: small.copyWith(color: active.isDark ? Colors.white38 : grey),
+              ),
+              6.verticalSpace,
+              user.unreadCounter == 0 || user.unreadCounter == null
+                  ? const SizedBox(height: 18)
+                  : CircleAvatar(
+                      radius: 9.r,
+                      backgroundColor: active.primaryAccent,
+                      child: Text(
+                        "${user.unreadCounter}",
+                        style: small.copyWith(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold),
+                      ),
+                    )
+            ],
+          ),
+        ),
       ),
     );
   }

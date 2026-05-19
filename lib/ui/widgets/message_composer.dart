@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:chat_app/core/providers/ui_theme_provider.dart';
 
 /// Self-contained message composer bar.
 /// Emits callbacks for send, image pick, file pick, audio record.
@@ -51,16 +53,16 @@ class _MessageComposerState extends State<MessageComposer> {
 
   @override
   Widget build(BuildContext context) {
+    final uiTheme = Provider.of<UiThemeProvider>(context);
+    final active = uiTheme.activePreset;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (_showAttachMenu) _buildAttachMenu(),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            border: Border(top: BorderSide(color: Theme.of(context).dividerColor, width: 1)),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          color: Colors.transparent,
           child: SafeArea(
             top: false,
             child: Row(
@@ -71,30 +73,34 @@ class _MessageComposerState extends State<MessageComposer> {
                   icon: _showAttachMenu ? Icons.close_rounded : Icons.add_rounded,
                   onTap: () => setState(() => _showAttachMenu = !_showAttachMenu),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 // Text field
                 Expanded(
                   child: Container(
                     constraints: const BoxConstraints(maxHeight: 120),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      borderRadius: BorderRadius.circular(22),
+                      color: active.isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: active.primaryAccent.withOpacity(0.15),
+                        width: 1,
+                      ),
                     ),
                     child: TextField(
                       controller: widget.controller,
                       maxLines: null,
                       textCapitalization: TextCapitalization.sentences,
-                      style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
+                      style: TextStyle(fontSize: 15, color: active.isDark ? Colors.white70 : Colors.black87),
                       decoration: InputDecoration(
                         hintText: 'Message...',
-                        hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 15),
+                        hintStyle: TextStyle(color: active.isDark ? Colors.white38 : Colors.grey, fontSize: 15),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         border: InputBorder.none,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 // Send or mic
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
