@@ -1,4 +1,3 @@
-import 'package:chat_app/core/services/auth_service.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
 import 'package:chat_app/ui/widgets/button_widget.dart';
 import 'package:flutter/material.dart';
@@ -109,8 +108,6 @@ class ProfileScreen extends StatelessWidget {
               text: "Logout",
               onPressed: () {
                 Provider.of<UserProvider>(context, listen: false).clearUser();
-                AuthService().logout();
-                Navigator.popUntil(context, (route) => route.isFirst);
               },
             ),
             const SizedBox(height: 40),

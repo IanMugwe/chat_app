@@ -45,6 +45,8 @@ dependencies:
   image_picker: ^1.1.2
   file_picker: ^11.0.2
   uuid: ^4.5.3
+  ychat_auth:
+    path: ./ychat_auth
 
 dev_dependencies:
   flutter_test:
