@@ -6,12 +6,14 @@ import 'package:chat_app/core/models/user_model.dart';
 import 'package:chat_app/core/models/chat_message.dart';
 import 'package:chat_app/core/models/chat_enums.dart';
 import 'package:chat_app/core/services/chat_service.dart';
+import 'package:chat_app/core/providers/ui_theme_provider.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chat_room/chat_viewmodel.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chat_room/chat_widgets.dart';
 import 'package:chat_app/ui/widgets/message_bubble.dart';
 import 'package:chat_app/ui/widgets/media_service.dart';
 import 'package:chat_app/ui/widgets/message_composer.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
+import 'package:chat_app/ui/screens/other/user_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,6 +33,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<UserProvider>(context).user;
+    final uiTheme = Provider.of<UiThemeProvider>(context);
+    final active = uiTheme.activePreset;
+
     return ChangeNotifierProvider(
       create: (context) => ChatViewmodel(ChatService(), currentUser!, widget.receiver),
       child: Consumer<ChatViewmodel>(builder: (context, model, _) {
@@ -44,16 +49,25 @@ class _ChatScreenState extends State<ChatScreen> {
         }
 
         return Scaffold(
-          body: Column(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 1.sw * 0.05, vertical: 10.h),
-                  child: Column(
-                    children: [
-                      35.verticalSpace,
-                      _buildHeader(context, name: widget.receiver.name!),
-                      15.verticalSpace,
+          backgroundColor: Colors.transparent,
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: active.backgroundGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 1.sw * 0.05, vertical: 10.h),
+                    child: Column(
+                      children: [
+                        35.verticalSpace,
+                        _buildHeader(context, name: widget.receiver.name!, activePreset: active),
+                        15.verticalSpace,
                       Expanded(
                         child: ListView.separated(
                           padding: const EdgeInsets.all(0),
@@ -137,10 +151,11 @@ class _ChatScreenState extends State<ChatScreen> {
               )
             ],
           ),
-        );
-      }),
-    );
-  }
+        ),
+      );
+    }),
+  );
+}
 
   void _showContextMenu(BuildContext context, ChatViewmodel model, ChatMessage message) {
     showModalBottomSheet(context: context, builder: (_) => SafeArea(child: Wrap(children: [
@@ -151,19 +166,102 @@ class _ChatScreenState extends State<ChatScreen> {
     ])));
   }
 
-  Row _buildHeader(BuildContext context, {String name = ""}) {
+  Row _buildHeader(BuildContext context, {String name = "", required UiThemePreset activePreset}) {
     return Row(
       children: [
         InkWell(
           onTap: () => Navigator.pop(context),
           child: Container(
-            padding: const EdgeInsets.only(left: 10, top: 6, bottom: 6),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8.r), color: grey.withOpacity(0.15)),
-            child: const Icon(Icons.arrow_back_ios),
+            padding: EdgeInsets.all(8.r),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: activePreset.isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+            ),
+            child: Icon(Icons.arrow_back_ios_new_rounded, color: activePreset.isDark ? Colors.white : Colors.black87, size: 16.r),
           ),
         ),
-        15.horizontalSpace,
-        Text(name, style: h.copyWith(fontSize: 20.sp)),
+        10.horizontalSpace,
+        Expanded(
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => UserProfileScreen(user: widget.receiver),
+                ),
+              );
+            },
+            child: Row(
+              children: [
+                Stack(
+                  children: [
+                    widget.receiver.imageUrl == null
+                        ? CircleAvatar(
+                            radius: 18.r,
+                            backgroundColor: activePreset.primaryAccent.withOpacity(0.12),
+                            child: Text(
+                              widget.receiver.name?[0].toUpperCase() ?? '',
+                              style: TextStyle(color: activePreset.primaryAccent, fontWeight: FontWeight.bold, fontSize: 14.sp),
+                            ),
+                          )
+                        : CircleAvatar(
+                            radius: 18.r,
+                            backgroundImage: NetworkImage(widget.receiver.imageUrl!),
+                          ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        height: 9.r,
+                        width: 9.r,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981), // online green
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: activePreset.isDark ? const Color(0xFF1E1C24) : Colors.white,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                10.horizontalSpace,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: h.copyWith(
+                          fontSize: 15.sp,
+                          color: activePreset.isDark ? Colors.white : Colors.black87,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      2.verticalSpace,
+                      Text(
+                        'Online now',
+                        style: TextStyle(
+                          fontSize: 10.sp,
+                          color: activePreset.primaryAccent.withOpacity(0.85),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Icon(Icons.videocam_outlined, color: activePreset.isDark ? Colors.white70 : Colors.black54, size: 22.r),
+        14.horizontalSpace,
+        Icon(Icons.phone_outlined, color: activePreset.isDark ? Colors.white70 : Colors.black54, size: 20.r),
+        14.horizontalSpace,
+        Icon(Icons.more_vert_rounded, color: activePreset.isDark ? Colors.white70 : Colors.black54, size: 20.r),
       ],
     );
   }

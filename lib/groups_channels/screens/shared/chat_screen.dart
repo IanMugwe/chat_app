@@ -7,6 +7,8 @@ import 'package:chat_app/core/models/chat_message.dart';
 import 'package:chat_app/core/models/media_attachment.dart';
 import 'package:chat_app/core/constants/colors.dart';
 import 'package:chat_app/core/constants/styles.dart';
+import 'package:chat_app/core/providers/ui_theme_provider.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:chat_app/ui/widgets/message_composer.dart';
 import 'package:chat_app/ui/widgets/media_service.dart';
 import 'package:image_picker/image_picker.dart';
@@ -79,78 +81,169 @@ class _ChatScreenState extends State<ChatScreen> {
           }
         }
 
+        final uiTheme = Provider.of<UiThemeProvider>(context);
+        final active = uiTheme.activePreset;
+
         return Scaffold(
-          backgroundColor: white,
-          appBar: AppBar(
-            backgroundColor: white,
-            elevation: 0.5,
-            iconTheme: const IconThemeData(color: primary),
-            title: Text(
-              widget.conversation.name ?? 'Chat',
-              style: h.copyWith(color: primary, fontWeight: FontWeight.bold),
+          backgroundColor: Colors.transparent,
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(65.h),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  child: Row(
+                    children: [
+                      InkWell(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          padding: EdgeInsets.all(8.r),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: active.isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+                          ),
+                          child: Icon(Icons.arrow_back_ios_new_rounded, color: active.isDark ? Colors.white : Colors.black87, size: 16.r),
+                        ),
+                      ),
+                      10.horizontalSpace,
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) {
+                              if (widget.scope == ChatScope.channel) {
+                                return ChannelInfoScreen(conversation: widget.conversation, currentUserId: widget.currentUserId);
+                              }
+                              return GroupInfoScreen(conversation: widget.conversation, currentUserId: widget.currentUserId);
+                            }));
+                          },
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 18.r,
+                                backgroundColor: active.primaryAccent.withOpacity(0.12),
+                                child: Text(
+                                  (widget.conversation.name ?? '?')[0].toUpperCase(),
+                                  style: TextStyle(color: active.primaryAccent, fontWeight: FontWeight.bold, fontSize: 14.sp),
+                                ),
+                              ),
+                              10.horizontalSpace,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      widget.conversation.name ?? 'Chat',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: h.copyWith(
+                                        fontSize: 15.sp,
+                                        color: active.isDark ? Colors.white : Colors.black87,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    2.verticalSpace,
+                                    Text(
+                                      widget.scope == ChatScope.channel ? 'Channel Room' : 'Group Room',
+                                      style: TextStyle(
+                                        fontSize: 10.sp,
+                                        color: active.primaryAccent.withOpacity(0.85),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Icon(Icons.videocam_outlined, color: active.isDark ? Colors.white70 : Colors.black54, size: 22.r),
+                      14.horizontalSpace,
+                      Icon(Icons.phone_outlined, color: active.isDark ? Colors.white70 : Colors.black54, size: 20.r),
+                      14.horizontalSpace,
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) {
+                            if (widget.scope == ChatScope.channel) {
+                              return ChannelInfoScreen(conversation: widget.conversation, currentUserId: widget.currentUserId);
+                            }
+                            return GroupInfoScreen(conversation: widget.conversation, currentUserId: widget.currentUserId);
+                          }));
+                        },
+                        child: Icon(Icons.info_outline_rounded, color: active.isDark ? Colors.white70 : Colors.black54, size: 20.r),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.info_outline, color: primary),
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) {
-                  if (widget.scope == ChatScope.channel) {
-                    return ChannelInfoScreen(conversation: widget.conversation, currentUserId: widget.currentUserId);
-                  }
-                  return GroupInfoScreen(conversation: widget.conversation, currentUserId: widget.currentUserId);
-                })),
-              )
-            ],
           ),
-          body: Column(children: [
-            Expanded(
-              child: MessageList(
-                messages: room.messages,
-                currentUserId: widget.currentUserId,
-                loading: room.loading,
-                onReply: (m) => setState(() => replyingTo = m),
-                onEdit: (m) => _edit(context, room, m),
-                onDelete: (m) => room.delete(widget.scope, widget.conversation.id, m.id),
-                onReact: (m, e) => room.react(widget.scope, widget.conversation.id, m.id, e, widget.currentUserId, true),
-                onStar: (m) => room.starMessage(widget.scope, widget.conversation.id, m.id, !m.isStarred),
-                onPin: (m) => room.pinMessage(widget.scope, widget.conversation.id, m.id, !m.isPinned),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: active.backgroundGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
-            if (replyingTo != null)
-              Container(
-                color: const Color(0xFFF5F5F5),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(children: [
-                  Expanded(child: Text('Replying to: ${replyingTo?.text ?? "Media"}', maxLines: 1, overflow: TextOverflow.ellipsis, style: body.copyWith(color: grey))),
-                  IconButton(onPressed: () => setState(() => replyingTo = null), icon: const Icon(Icons.close, color: primary)),
-                ]),
+            child: Column(children: [
+              Expanded(
+                child: MessageList(
+                  messages: room.messages,
+                  currentUserId: widget.currentUserId,
+                  loading: room.loading,
+                  onReply: (m) => setState(() => replyingTo = m),
+                  onEdit: (m) => _edit(context, room, m),
+                  onDelete: (m) => room.delete(widget.scope, widget.conversation.id, m.id),
+                  onReact: (m, e) => room.react(widget.scope, widget.conversation.id, m.id, e, widget.currentUserId, true),
+                  onStar: (m) => room.starMessage(widget.scope, widget.conversation.id, m.id, !m.isStarred),
+                  onPin: (m) => room.pinMessage(widget.scope, widget.conversation.id, m.id, !m.isPinned),
+                ),
               ),
-            if (canPost)
-              MessageComposer(
-                controller: _controller,
-                onChanged: (_) {},
-                onSend: () async {
-                  final text = _controller.text.trim();
-                  if (text.isNotEmpty) {
-                    await room.sendText(
-                      scope: widget.scope,
-                      conversationId: widget.conversation.id,
-                      senderId: widget.currentUserId,
-                      senderName: widget.currentUserName,
-                      text: text,
-                      replyToMessageId: replyingTo?.id,
-                      replyPreview: replyingTo?.text,
-                    );
-                    _controller.clear();
-                    setState(() => replyingTo = null);
-                  }
-                },
-                onImagePick: () async => handleMedia(await MediaService.instance.pickImage(ImageSource.gallery), MessageType.image),
-                onCameraPick: () async => handleMedia(await MediaService.instance.pickImage(ImageSource.camera), MessageType.image),
-                onFilePick: () async => handleMedia(await MediaService.instance.pickFile(), MessageType.file),
-              )
-            else
-              const SafeArea(child: Padding(padding: EdgeInsets.all(12), child: Text('Only admins can post in this channel.', style: TextStyle(color: grey)))),
-          ]),
+              if (replyingTo != null)
+                Container(
+                  color: active.isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(children: [
+                    Expanded(child: Text('Replying to: ${replyingTo?.text ?? "Media"}', maxLines: 1, overflow: TextOverflow.ellipsis, style: body.copyWith(color: active.isDark ? Colors.white70 : grey))),
+                    IconButton(onPressed: () => setState(() => replyingTo = null), icon: Icon(Icons.close, color: active.primaryAccent)),
+                  ]),
+                ),
+              if (canPost)
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  child: MessageComposer(
+                    controller: _controller,
+                    onChanged: (_) {},
+                    onSend: () async {
+                      final text = _controller.text.trim();
+                      if (text.isNotEmpty) {
+                        await room.sendText(
+                          scope: widget.scope,
+                          conversationId: widget.conversation.id,
+                          senderId: widget.currentUserId,
+                          senderName: widget.currentUserName,
+                          text: text,
+                          replyToMessageId: replyingTo?.id,
+                          replyPreview: replyingTo?.text,
+                        );
+                        _controller.clear();
+                        setState(() => replyingTo = null);
+                      }
+                    },
+                    onImagePick: () async => handleMedia(await MediaService.instance.pickImage(ImageSource.gallery), MessageType.image),
+                    onCameraPick: () async => handleMedia(await MediaService.instance.pickImage(ImageSource.camera), MessageType.image),
+                    onFilePick: () async => handleMedia(await MediaService.instance.pickFile(), MessageType.file),
+                  ),
+                )
+              else
+                SafeArea(child: Padding(padding: const EdgeInsets.all(12), child: Text('Only admins can post in this channel.', style: TextStyle(color: active.isDark ? Colors.white54 : grey)))),
+            ]),
+          ),
         );
       }),
     );
