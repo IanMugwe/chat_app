@@ -4,11 +4,11 @@ class ChatPaths {
   static String collectionFor(ChatScope scope) {
     switch (scope) {
       case ChatScope.direct:
-        return 'chatRooms';
+        return 'ychatRooms';
       case ChatScope.group:
-        return 'groups';
+        return 'ygroups';
       case ChatScope.channel:
-        return 'channels';
+        return 'ychannels';
     }
   }
 

@@ -20,7 +20,7 @@ class ChatRepository {
       _doc(scope, id).collection('messages');
 
   Stream<List<ChatConversation>> watchGroups(String userId) {
-    return _db.collection('groups')
+    return _db.collection('ygroups')
         .where('memberIds', arrayContains: userId)
         .orderBy('updatedAt', descending: true)
         .snapshots()
@@ -31,7 +31,7 @@ class ChatRepository {
   }
 
   Stream<List<ChatConversation>> watchChannels(String userId) {
-    return _db.collection('channels')
+    return _db.collection('ychannels')
         .where('subscriberIds', arrayContains: userId)
         .orderBy('updatedAt', descending: true)
         .snapshots()
@@ -51,7 +51,7 @@ class ChatRepository {
   }) async {
     final now = FieldValue.serverTimestamp();
     final ids = {...memberIds, ownerId}.toList();
-    final ref = _db.collection('groups').doc();
+    final ref = _db.collection('ygroups').doc();
     final batch = _db.batch();
     batch.set(ref, {
       'type': enumName(ConversationType.group),
@@ -88,7 +88,7 @@ class ChatRepository {
     bool isPublic = true,
   }) async {
     final now = FieldValue.serverTimestamp();
-    final ref = _db.collection('channels').doc();
+    final ref = _db.collection('ychannels').doc();
     await ref.set({
       'type': enumName(ConversationType.channel),
       'name': name,
@@ -135,7 +135,7 @@ class ChatRepository {
   }
 
   Future<void> joinGroup(String groupId, String userId) async {
-    final ref = _db.collection('groups').doc(groupId);
+    final ref = _db.collection('ygroups').doc(groupId);
     await _db.runTransaction((tx) async {
       tx.update(ref, {
         'memberIds': FieldValue.arrayUnion([userId]),
@@ -152,7 +152,7 @@ class ChatRepository {
   }
 
   Future<void> leaveGroup(String groupId, String userId) async {
-    final ref = _db.collection('groups').doc(groupId);
+    final ref = _db.collection('ygroups').doc(groupId);
     await _db.runTransaction((tx) async {
       tx.update(ref, {
         'memberIds': FieldValue.arrayRemove([userId]),
@@ -165,7 +165,7 @@ class ChatRepository {
   }
 
   Future<void> subscribeChannel(String channelId, String userId) async {
-    final ref = _db.collection('channels').doc(channelId);
+    final ref = _db.collection('ychannels').doc(channelId);
     await _db.runTransaction((tx) async {
       tx.update(ref, {
         'subscriberIds': FieldValue.arrayUnion([userId]),
@@ -182,7 +182,7 @@ class ChatRepository {
   }
 
   Future<void> unsubscribeChannel(String channelId, String userId) async {
-    final ref = _db.collection('channels').doc(channelId);
+    final ref = _db.collection('ychannels').doc(channelId);
     await _db.runTransaction((tx) async {
       tx.update(ref, {
         'subscriberIds': FieldValue.arrayRemove([userId]),

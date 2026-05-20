@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:chat_app/core/models/chat_enums.dart';
 import 'package:chat_app/core/constants/colors.dart';
 import 'package:chat_app/core/constants/styles.dart';
+import 'package:chat_app/core/providers/ui_theme_provider.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../providers/conversations_provider.dart';
 import '../../services/chat_repository.dart';
 import '../../widgets/conversation_tile.dart';
@@ -28,42 +30,68 @@ class _ChannelsListScreenState extends State<ChannelsListScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ConversationsProvider>();
+    final uiTheme = Provider.of<UiThemeProvider>(context);
+    final active = uiTheme.activePreset;
+
     return Scaffold(
-      backgroundColor: white,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: white,
-        elevation: 0.5,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(
-          'Channels',
-          style: h.copyWith(color: primary, fontWeight: FontWeight.bold),
+          'channels',
+          style: h.copyWith(
+            color: active.isDark ? Colors.white : Colors.black87,
+            fontWeight: FontWeight.bold,
+            fontSize: 26.sp,
+            letterSpacing: -0.5,
+          ),
         ),
       ),
-      body: provider.loading
-          ? const Center(child: CircularProgressIndicator(color: primary))
-          : provider.channels.isEmpty
-              ? const Center(child: Text('No channels joined yet'))
-              : ListView.separated(
-                  itemCount: provider.channels.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                  itemBuilder: (_, i) {
-                    final c = provider.channels[i];
-                    return ConversationTile(
-                      conversation: c,
-                      currentUserId: widget.currentUserId,
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(
-                        scope: ChatScope.channel,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: active.backgroundGradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: provider.loading
+            ? Center(child: CircularProgressIndicator(color: active.primaryAccent))
+            : provider.channels.isEmpty
+                ? Center(
+                    child: Text(
+                      'No channels joined yet',
+                      style: body.copyWith(color: active.isDark ? Colors.white60 : Colors.black54),
+                    ),
+                  )
+                : ListView.separated(
+                    padding: EdgeInsets.symmetric(vertical: 8.h),
+                    itemCount: provider.channels.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 4),
+                    itemBuilder: (_, i) {
+                      final c = provider.channels[i];
+                      return ConversationTile(
                         conversation: c,
                         currentUserId: widget.currentUserId,
-                        currentUserName: widget.currentUserName,
-                        repository: ChatRepository(),
-                      ))),
-                    );
-                  },
-                ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: primary,
-        child: const Icon(Icons.add, color: white),
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChannelCreateEditScreen(currentUserId: widget.currentUserId))),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(
+                          scope: ChatScope.channel,
+                          conversation: c,
+                          currentUserId: widget.currentUserId,
+                          currentUserName: widget.currentUserName,
+                          repository: ChatRepository(),
+                        ))),
+                      );
+                    },
+                  ),
+      ),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: 80.h, right: 8.w), // offset to sit above floating nav capsule
+        child: FloatingActionButton(
+          backgroundColor: active.primaryAccent,
+          child: const Icon(Icons.add, color: Colors.white),
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChannelCreateEditScreen(currentUserId: widget.currentUserId))),
+        ),
       ),
     );
   }
