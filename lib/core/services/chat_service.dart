@@ -16,7 +16,7 @@ class ChatService {
     String? replyPreview,
     List<MediaAttachment> attachments = const [],
   }) async {
-    final msgRef = _fire.collection("chatRooms").doc(chatRoomId).collection("messages").doc();
+    final msgRef = _fire.collection("ychatRooms").doc(chatRoomId).collection("messages").doc();
     final message = ChatMessage(
       id: msgRef.id,
       conversationId: chatRoomId,
@@ -35,7 +35,7 @@ class ChatService {
     await msgRef.set(message.toCreateMap());
     
     // Update last message in parent room
-    await _fire.collection("chatRooms").doc(chatRoomId).update({
+    await _fire.collection("ychatRooms").doc(chatRoomId).update({
       "lastMessage": text ?? "📎 Attachment",
       "lastMessageAt": FieldValue.serverTimestamp(),
     });
@@ -43,7 +43,7 @@ class ChatService {
 
   Stream<List<ChatMessage>> getMessages(String chatRoomId) {
     return _fire
-        .collection("chatRooms")
+        .collection("ychatRooms")
         .doc(chatRoomId)
         .collection("messages")
         .orderBy("createdAt", descending: true)
@@ -52,14 +52,14 @@ class ChatService {
   }
 
   Future<void> editMessage(String chatRoomId, String messageId, String text) async {
-    await _fire.collection("chatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
+    await _fire.collection("ychatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
       'text': text,
       'status': enumName(MessageStatus.edited),
     });
   }
 
   Future<void> deleteMessage(String chatRoomId, String messageId) async {
-    await _fire.collection("chatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
+    await _fire.collection("ychatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
       'status': enumName(MessageStatus.deleted),
       'text': null,
       'attachments': [],
@@ -67,13 +67,13 @@ class ChatService {
   }
 
   Future<void> starMessage(String chatRoomId, String messageId, bool isStarred) async {
-    await _fire.collection("chatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
+    await _fire.collection("ychatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
       'isStarred': isStarred,
     });
   }
 
   Future<void> pinMessage(String chatRoomId, String messageId, bool isPinned) async {
-    await _fire.collection("chatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
+    await _fire.collection("ychatRooms").doc(chatRoomId).collection("messages").doc(messageId).update({
       'isPinned': isPinned,
     });
   }

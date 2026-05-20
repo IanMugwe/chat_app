@@ -7,7 +7,7 @@ class DatabaseService {
 
   Future<void> saveUser(Map<String, dynamic> userData) async {
     try {
-      await _fire.collection("users").doc(userData["uid"]).set(userData);
+      await _fire.collection("yusers").doc(userData["uid"]).set(userData);
 
       log("User saved successfully");
     } catch (e) {
@@ -17,7 +17,7 @@ class DatabaseService {
 
   Future<Map<String, dynamic>?> loadUser(String uid) async {
     try {
-      final res = await _fire.collection("users").doc(uid).get();
+      final res = await _fire.collection("yusers").doc(uid).get();
 
       if (res.data() != null) {
         log("User fetched successfully");
@@ -32,7 +32,7 @@ class DatabaseService {
   Future<List<Map<String, dynamic>>?> fetchUsers(String currentUserId) async {
     try {
       final res = await _fire
-          .collection("users")
+          .collection("yusers")
           .where("uid", isNotEqualTo: currentUserId)
           .get();
 
@@ -45,7 +45,7 @@ class DatabaseService {
   Stream<QuerySnapshot<Map<String, dynamic>>> fetchUserStream(
           String currentUserId) =>
       _fire
-          .collection("users")
+          .collection("yusers")
           .where("uid", isNotEqualTo: currentUserId)
           .snapshots();
 }
