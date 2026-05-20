@@ -34,11 +34,24 @@ class ChatService {
 
     await msgRef.set(message.toCreateMap());
     
-    // Update last message in parent room
-    await _fire.collection("ychatRooms").doc(chatRoomId).update({
+    // Extract participants from chatRoomId (assuming format is uid1_uid2)
+    List<String> participants = chatRoomId.split('_');
+    if (participants.length != 2) participants = [senderId]; // fallback
+
+    // Update last message in parent room, create if not exists
+    await _fire.collection("ychatRooms").doc(chatRoomId).set({
       "lastMessage": text ?? "📎 Attachment",
       "lastMessageAt": FieldValue.serverTimestamp(),
-    });
+      "participants": participants,
+    }, SetOptions(merge: true));
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> getUserChats(String userId) {
+    return _fire
+        .collection("ychatRooms")
+        .where("participants", arrayContains: userId)
+        .orderBy("lastMessageAt", descending: true)
+        .snapshots();
   }
 
   Stream<List<ChatMessage>> getMessages(String chatRoomId) {
