@@ -1,23 +1,19 @@
-import 'package:chat_app/core/utils/route_utils.dart';
 import 'package:chat_app/core/constants/colors.dart';
-<<<<<<< HEAD
 import 'package:chat_app/core/providers/ui_theme_provider.dart';
-
+import 'package:chat_app/core/utils/route_utils.dart';
 import 'package:chat_app/firebase_options.dart';
-=======
 import 'package:chat_app/ui/screens/bottom_navigation/bottom_navigation_screen.dart';
->>>>>>> feat/auth
 import 'package:chat_app/ui/screens/other/user_provider.dart';
-import 'package:chat_app/firebase_options.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+
 import 'package:ychat_auth/ychat_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Bootstrap Firebase & Firestore settings using ychat_auth bootstrap
   await FirebaseBootstrap.initialize(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -31,76 +27,75 @@ class ChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      builder: (context, child) => MultiProvider(
-        providers: [
-<<<<<<< HEAD
-          ChangeNotifierProvider(create: (context) => UserProvider(DatabaseService())),
-          ChangeNotifierProvider(create: (context) => UiThemeProvider()),
-        ],
-        child: Consumer<UiThemeProvider>(
-          builder: (context, uiTheme, child) {
-            final active = uiTheme.activePreset;
-            return MaterialApp(
-              debugShowCheckedModeBanner: false,
-              theme: ThemeData(
-                primaryColor: active.primaryAccent,
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: active.primaryAccent,
-                  primary: active.primaryAccent,
-                  secondary: active.primaryAccent,
-                  brightness: active.isDark ? Brightness.dark : Brightness.light,
-                  surface: active.isDark ? const Color(0xFF121212) : Colors.white,
-                ),
-                appBarTheme: AppBarTheme(
-                  backgroundColor: active.isDark ? const Color(0xFF121212) : Colors.white,
-                  foregroundColor: active.primaryAccent,
-                  elevation: 0,
-                  centerTitle: true,
-                  iconTheme: IconThemeData(color: active.primaryAccent),
-                ),
-                scaffoldBackgroundColor: active.isDark ? const Color(0xFF121212) : Colors.white,
-                useMaterial3: true,
-              ),
-              onGenerateRoute: RouteUtils.onGenerateRoute,
-              home: const SplashScreen(),
-            );
-          },
-=======
-          ChangeNotifierProvider(
-            create: (context) => YUserProvider(),
-          ),
-          ChangeNotifierProvider(
-            create: (context) => UserProvider(context.read<YUserProvider>()),
-          ),
-        ],
-        child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            primaryColor: primary,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: primary,
-              primary: primary,
-              secondary: primary,
-              surface: Colors.white,
-              onPrimary: Colors.white,
+      builder: (context, child) {
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(
+              create: (_) => YUserProvider(),
             ),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.white,
-              foregroundColor: primary,
-              elevation: 0,
-              centerTitle: true,
-              iconTheme: IconThemeData(color: primary),
+
+            ChangeNotifierProvider(
+              create: (context) =>
+                  UserProvider(context.read<YUserProvider>()),
             ),
-            scaffoldBackgroundColor: Colors.white,
-            useMaterial3: true,
+
+            ChangeNotifierProvider(
+              create: (_) => UiThemeProvider(),
+            ),
+          ],
+
+          child: Consumer<UiThemeProvider>(
+            builder: (context, uiTheme, child) {
+              final active = uiTheme.activePreset;
+
+              return MaterialApp(
+                debugShowCheckedModeBanner: false,
+
+                theme: ThemeData(
+                  primaryColor: active.primaryAccent,
+
+                  colorScheme: ColorScheme.fromSeed(
+                    seedColor: active.primaryAccent,
+                    primary: active.primaryAccent,
+                    secondary: active.primaryAccent,
+                    brightness: active.isDark
+                        ? Brightness.dark
+                        : Brightness.light,
+                    surface: active.isDark
+                        ? const Color(0xFF121212)
+                        : Colors.white,
+                  ),
+
+                  appBarTheme: AppBarTheme(
+                    backgroundColor: active.isDark
+                        ? const Color(0xFF121212)
+                        : Colors.white,
+                    foregroundColor: active.primaryAccent,
+                    elevation: 0,
+                    centerTitle: true,
+                    iconTheme: IconThemeData(
+                      color: active.primaryAccent,
+                    ),
+                  ),
+
+                  scaffoldBackgroundColor: active.isDark
+                      ? const Color(0xFF121212)
+                      : Colors.white,
+
+                  useMaterial3: true,
+                ),
+
+                onGenerateRoute: RouteUtils.onGenerateRoute,
+
+                home: YChatAuthWrapper(
+                  homeBuilder: (context, profile) =>
+                      const BottomNavigationScreen(),
+                ),
+              );
+            },
           ),
-          onGenerateRoute: RouteUtils.onGenerateRoute,
-          home: YChatAuthWrapper(
-            homeBuilder: (context, profile) => const BottomNavigationScreen(),
-          ),
->>>>>>> feat/auth
-        ),
-      ),
+        );
+      },
     );
   }
 }

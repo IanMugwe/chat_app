@@ -104,56 +104,62 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
                 10.verticalSpace,
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
                   child: Row(
                     children: [
-                      _buildCategoryChip('All', isActive: true, activePreset: active),
+                      _buildCategoryChip('All',
+                          isActive: true, activePreset: active),
                       8.horizontalSpace,
-                      _buildCategoryChip('Unread', count: 4, activePreset: active),
+                      _buildCategoryChip('Unread',
+                          count: 4, activePreset: active),
                       8.horizontalSpace,
                       _buildCategoryChip('Favorites', activePreset: active),
                       8.horizontalSpace,
-                      _buildCategoryChip('Groups', count: 8, activePreset: active),
+                      _buildCategoryChip('Groups',
+                          count: 8, activePreset: active),
                       8.horizontalSpace,
-                      _buildCategoryChip('Channels', count: 3, activePreset: active),
+                      _buildCategoryChip('Channels',
+                          count: 3, activePreset: active),
                     ],
                   ),
                 ),
                 10.verticalSpace,
                 const Divider(height: 1, color: Colors.transparent),
-              model.state == ViewState.loading
-                  ? const Expanded(
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  : model.users.isEmpty
-                      ? const Expanded(
-                          child: Center(
-                            child: Text("No Users yet"),
-                          ),
-                        )
-                      : Expanded(
-                          child: ListView.separated(
-                            padding: EdgeInsets.symmetric(vertical: 4.h),
-                            itemCount: model.filteredUsers.length,
-                            separatorBuilder: (context, index) =>
-                                const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                            itemBuilder: (context, index) {
-                              final user = model.filteredUsers[index];
-                              return ChatTile(
-                                user: user,
-                                onTap: () => Navigator.pushNamed(
-                                    context, chatRoom,
-                                    arguments: user),
-                              );
-                            },
-                          ),
-                        )
-            ],
+                model.state == ViewState.loading
+                    ? const Expanded(
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : model.users.isEmpty
+                        ? const Expanded(
+                            child: Center(
+                              child: Text("No Users yet"),
+                            ),
+                          )
+                        : Expanded(
+                            child: ListView.separated(
+                              padding: EdgeInsets.symmetric(vertical: 4.h),
+                              itemCount: model.filteredUsers.length,
+                              separatorBuilder: (context, index) =>
+                                  const Divider(
+                                      height: 1, color: Color(0xFFEEEEEE)),
+                              itemBuilder: (context, index) {
+                                final user = model.filteredUsers[index];
+                                return ChatTile(
+                                  user: user,
+                                  onTap: () => Navigator.pushNamed(
+                                      context, chatRoom,
+                                      arguments: user),
+                                );
+                              },
+                            ),
+                          )
+              ],
+            ),
           ),
-        ),
-        floatingActionButton: Padding(
+          floatingActionButton: Padding(
             padding: EdgeInsets.only(bottom: 12.h, right: 4.w),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -171,7 +177,8 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
                         MaterialPageRoute(builder: (_) => const AiChatScreen()),
                       );
                     },
-                    child: Icon(Icons.auto_awesome, color: active.primaryAccent, size: 20),
+                    child: Icon(Icons.auto_awesome,
+                        color: active.primaryAccent, size: 20),
                   ),
                 ),
                 12.verticalSpace,
@@ -182,7 +189,8 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('Start New Chat feature coming soon!'),
+                        content:
+                            const Text('Start New Chat feature coming soon!'),
                         backgroundColor: active.primaryAccent,
                       ),
                     );
@@ -197,34 +205,46 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
     );
   }
 
-  Widget _buildTopActionIcon(IconData icon, VoidCallback onTap, UiThemePreset activePreset) {
+  Widget _buildTopActionIcon(
+      IconData icon, VoidCallback onTap, UiThemePreset activePreset) {
     return Container(
       margin: EdgeInsets.only(right: 8.w),
       height: 36.r,
       width: 36.r,
       decoration: BoxDecoration(
-        color: activePreset.isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+        color: activePreset.isDark
+            ? Colors.white.withOpacity(0.08)
+            : Colors.black.withOpacity(0.04),
         shape: BoxShape.circle,
       ),
       alignment: Alignment.center,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18.r),
-        child: Icon(icon, color: activePreset.isDark ? Colors.white70 : Colors.black87, size: 18.r),
+        child: Icon(icon,
+            color: activePreset.isDark ? Colors.white70 : Colors.black87,
+            size: 18.r),
       ),
     );
   }
 
-  Widget _buildCategoryChip(String label, {bool isActive = false, int? count, required UiThemePreset activePreset}) {
+  Widget _buildCategoryChip(String label,
+      {bool isActive = false,
+      int? count,
+      required UiThemePreset activePreset}) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
       decoration: BoxDecoration(
-        color: isActive 
-            ? activePreset.primaryAccent 
-            : (activePreset.isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04)),
+        color: isActive
+            ? activePreset.primaryAccent
+            : (activePreset.isDark
+                ? Colors.white.withOpacity(0.08)
+                : Colors.black.withOpacity(0.04)),
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: isActive ? Colors.transparent : (activePreset.isDark ? Colors.white12 : Colors.black12),
+          color: isActive
+              ? Colors.transparent
+              : (activePreset.isDark ? Colors.white12 : Colors.black12),
           width: 1,
         ),
       ),
@@ -234,7 +254,9 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
           Text(
             label,
             style: body.copyWith(
-              color: isActive ? Colors.white : (activePreset.isDark ? Colors.white70 : Colors.black87),
+              color: isActive
+                  ? Colors.white
+                  : (activePreset.isDark ? Colors.white70 : Colors.black87),
               fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
               fontSize: 13.sp,
             ),
@@ -270,24 +292,33 @@ class ChatTile extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       child: Container(
         decoration: BoxDecoration(
-          color: active.isDark ? Colors.white.withOpacity(0.03) : Colors.white.withOpacity(0.4),
+          color: active.isDark
+              ? Colors.white.withOpacity(0.03)
+              : Colors.white.withOpacity(0.4),
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
-            color: active.isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
+            color:
+                active.isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
             width: 1,
           ),
         ),
         child: ListTile(
           onTap: onTap,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
           contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
           leading: user.imageUrl == null
               ? CircleAvatar(
-                  backgroundColor: active.primaryAccent.withOpacity(0.12),
+                  backgroundColor: primary.withOpacity(0.1),
                   radius: 25.r,
                   child: Text(
-                    user.name![0].toUpperCase(),
-                    style: h.copyWith(color: active.primaryAccent, fontSize: 20.sp, fontWeight: FontWeight.bold),
+                    user.name != null && user.name!.isNotEmpty
+                        ? user.name![0].toUpperCase()
+                        : "?",
+                    style: h.copyWith(
+                      color: primary,
+                      fontSize: 20.sp,
+                    ),
                   ),
                 )
               : ClipOval(
@@ -307,7 +338,9 @@ class ChatTile extends StatelessWidget {
             ),
           ),
           subtitle: Text(
-            user.lastMessage != null ? user.lastMessage!["content"] : "No messages yet",
+            user.lastMessage != null
+                ? user.lastMessage!["content"]
+                : "No messages yet",
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: body.copyWith(
@@ -321,7 +354,8 @@ class ChatTile extends StatelessWidget {
             children: [
               Text(
                 user.lastMessage == null ? "" : getTime(),
-                style: small.copyWith(color: active.isDark ? Colors.white38 : grey),
+                style: small.copyWith(
+                    color: active.isDark ? Colors.white38 : grey),
               ),
               6.verticalSpace,
               user.unreadCounter == 0 || user.unreadCounter == null
@@ -331,7 +365,10 @@ class ChatTile extends StatelessWidget {
                       backgroundColor: active.primaryAccent,
                       child: Text(
                         "${user.unreadCounter}",
-                        style: small.copyWith(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold),
+                        style: small.copyWith(
+                            color: Colors.white,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.bold),
                       ),
                     )
             ],
