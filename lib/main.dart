@@ -1,20 +1,18 @@
-import 'package:chat_app/core/services/database_service.dart';
 import 'package:chat_app/core/utils/route_utils.dart';
 import 'package:chat_app/core/constants/colors.dart';
-
-import 'package:chat_app/firebase_options.dart';
+import 'package:chat_app/ui/screens/bottom_navigation/bottom_navigation_screen.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
-import 'package:chat_app/ui/screens/splash/splash_screen.dart';
-
-import 'package:firebase_core/firebase_core.dart';
+import 'package:chat_app/firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:ychat_auth/ychat_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
+  // Bootstrap Firebase & Firestore settings using ychat_auth bootstrap
+  await FirebaseBootstrap.initialize(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
@@ -27,8 +25,15 @@ class ChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      builder: (context, child) => ChangeNotifierProvider(
-        create: (context) => UserProvider(DatabaseService()),
+      builder: (context, child) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (context) => YUserProvider(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => UserProvider(context.read<YUserProvider>()),
+          ),
+        ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
@@ -51,7 +56,9 @@ class ChatApp extends StatelessWidget {
             useMaterial3: true,
           ),
           onGenerateRoute: RouteUtils.onGenerateRoute,
-          home: SplashScreen(),
+          home: YChatAuthWrapper(
+            homeBuilder: (context, profile) => const BottomNavigationScreen(),
+          ),
         ),
       ),
     );
