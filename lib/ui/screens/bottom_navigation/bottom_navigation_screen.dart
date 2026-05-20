@@ -55,17 +55,13 @@ class BottomNavigationScreen extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => ConversationsProvider(ChatRepository())),
       ],
       child: Consumer<BottomNavigationViewmodel>(builder: (context, model, _) {
-        return currentUser == null
-            ? const Center(
-                child: CircularProgressIndicator(),
-              )
-            : Scaffold(
-                body: screens[model.currentIndex],
-                bottomNavigationBar: CustomNavBar(
-                  currentIndex: model.currentIndex,
-                  onTap: model.setIndex,
-                  items: items,
-                ));
+        return Scaffold(
+            body: screens[model.currentIndex],
+            bottomNavigationBar: CustomNavBar(
+              currentIndex: model.currentIndex,
+              onTap: model.setIndex,
+              items: items,
+            ));
       }),
     );
   }

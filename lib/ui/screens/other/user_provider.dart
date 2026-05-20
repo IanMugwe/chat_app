@@ -11,7 +11,11 @@ class UserProvider extends ChangeNotifier {
 
   UserModel? get user => _currentUser;
 
-  loadUser(String uid) async {
+  Future<void> loadUser(String uid) async {
+    if (_currentUser != null && _currentUser!.uid == uid) {
+      return;
+    }
+
     final userData = await _db.loadUser(uid);
 
     if (userData != null) {

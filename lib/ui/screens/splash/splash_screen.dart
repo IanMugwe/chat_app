@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:chat_app/core/constants/string.dart';
 import 'package:chat_app/core/constants/colors.dart';
 import 'package:chat_app/core/constants/styles.dart';
-import 'package:chat_app/core/services/auth_service.dart';
+import 'package:chat_app/ui/screens/other/user_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,16 +23,40 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    _timer = Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, wrapper);
+    // Perform check after frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        // User is not logged in, transition after a short delay for splash logo visibility
+        _timer = Timer(const Duration(milliseconds: 800), () {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, wrapper);
+          }
+        });
+      } else {
+        // User is logged in, start pre-loading user profile in parallel
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        Future.wait([
+          userProvider.loadUser(user.uid),
+          Future.delayed(const Duration(milliseconds: 800)), // minimum delay for logo render
+        ]).timeout(const Duration(seconds: 4)).then((_) {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, wrapper);
+          }
+        }).catchError((_) {
+          // Fallback if network fails
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, wrapper);
+          }
+        });
+      }
     });
   }
 
   @override
   void dispose() {
-    super.dispose();
-
     _timer?.cancel();
+    super.dispose();
   }
 
   @override
