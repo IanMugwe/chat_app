@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:chat_app/core/models/chat_enums.dart';
 import 'package:flutter/material.dart';
@@ -426,6 +427,8 @@ class _MessageBubbleState extends State<MessageBubble> {
       return '$hr:${dt.minute.toString().padLeft(2, '0')}$ampm';
     }
 
+    final bool hasMedia = widget.message.type == MessageType.image || widget.message.type == MessageType.video || widget.message.type == MessageType.file || widget.message.attachments.isNotEmpty;
+
     Widget bubbleBody = Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
       decoration: BoxDecoration(
@@ -441,15 +444,17 @@ class _MessageBubbleState extends State<MessageBubble> {
         border: widget.isMine
             ? null
             : Border.all(
-                color: active.primaryAccent.withOpacity(0.12),
+                color: active.primaryAccent.withOpacity(hasMedia ? 0.02 : 0.12),
                 width: 1,
               ),
       ),
       constraints: BoxConstraints(maxWidth: 1.sw * 0.72),
       child: IntrinsicWidth(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
           children: [
             if (!widget.isMine && widget.message.senderName != null)
               Padding(
@@ -500,25 +505,36 @@ class _MessageBubbleState extends State<MessageBubble> {
                     onTap: () {
                       // Support tap to preview/fullscreen
                     },
-                    child: Image.network(
-                      widget.message.text!,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          height: 150.h,
-                          width: 150.w,
-                          color: Colors.grey.withOpacity(0.2),
-                          child: const Center(child: CircularProgressIndicator()),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        height: 150.h,
-                        width: 150.w,
-                        color: Colors.grey.withOpacity(0.2),
-                        child: const Icon(Icons.broken_image, color: Colors.grey),
-                      ),
-                    ),
+                    child: (widget.message.text!.startsWith('http://') || widget.message.text!.startsWith('https://'))
+                      ? Image.network(
+                          widget.message.text!,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              height: 150.h,
+                              width: 150.w,
+                              color: Colors.grey.withOpacity(0.2),
+                              child: const Center(child: CircularProgressIndicator()),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            height: 150.h,
+                            width: 150.w,
+                            color: Colors.grey.withOpacity(0.2),
+                            child: const Icon(Icons.broken_image, color: Colors.grey),
+                          ),
+                        )
+                      : Image.file(
+                          File(widget.message.text!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            height: 150.h,
+                            width: 150.w,
+                            color: Colors.grey.withOpacity(0.2),
+                            child: const Icon(Icons.broken_image, color: Colors.grey),
+                          ),
+                        ),
                   ),
                 )
               else if (widget.message.type == MessageType.video && widget.message.text != null)
@@ -610,10 +626,24 @@ class _MessageBubbleState extends State<MessageBubble> {
                       .toList(),
                 ),
               ),
-          ],
-        ),
+          ],        // closes Column's children list
+        ),          // ← ADD THIS: closes the Column widget itself
+        if (widget.message.status == MessageStatus.sending &&    // 2nd Stack child
+              (widget.message.type == MessageType.image || widget.message.type == MessageType.video || widget.message.type == MessageType.file))
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+              ),
+            ),
+        ],
       ),
-    );
+    ));
 
     return SwipeToReply(
       onReply: widget.onReply,

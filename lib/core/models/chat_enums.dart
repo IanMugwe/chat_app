@@ -2,7 +2,7 @@ enum ChatScope { direct, group, channel }
 enum ConversationType { direct, group, channel }
 enum MemberRole { owner, admin, moderator, member, viewer, subscriber }
 enum MessageType { text, image, video, audio, file, system }
-enum MessageStatus { sent, edited, deleted, failed }
+enum MessageStatus { sending, sent, edited, deleted, failed }
 enum ChannelPostingPolicy { adminsOnly, subscribers }
 
 String enumName(Object e) => e.toString().split('.').last;

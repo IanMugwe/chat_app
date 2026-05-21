@@ -43,19 +43,45 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Consumer<ChatViewmodel>(builder: (context, model, _) {
         Future<void> handleMedia(File? file, MessageType type) async {
           if (file == null) return;
+
+          final pendingId = "pending_${DateTime.now().millisecondsSinceEpoch}";
+          final fileName = file.path.split(Platform.pathSeparator).last;
+          final size = file.lengthSync();
+          final ext = fileName.split('.').last;
+          
+          String mimeType = 'application/octet-stream';
+          if (type == MessageType.image) mimeType = 'image/$ext';
+          if (type == MessageType.video) mimeType = 'video/$ext';
+          if (type == MessageType.file) mimeType = 'application/$ext';
+          
+          final localAttachment = MediaAttachment(
+            id: pendingId,
+            url: file.path,
+            storagePath: '',
+            mimeType: mimeType,
+            sizeBytes: size,
+            fileName: fileName,
+          );
+          
+          final pendingMessage = ChatMessage(
+            id: pendingId,
+            conversationId: model.chatRoomId,
+            scope: ChatScope.direct,
+            senderId: currentUser!.uid!,
+            senderName: currentUser.name,
+            type: type,
+            status: MessageStatus.sending,
+            text: file.path,
+            attachments: [localAttachment],
+            createdAt: DateTime.now(),
+          );
+          
+          model.addPendingMessage(pendingMessage);
+
           final url =
               await MediaService.instance.uploadMedia(file, 'chat_media');
           if (url != null) {
             if (type == MessageType.file || type == MessageType.image || type == MessageType.video) {
-              final fileName = file.path.split(Platform.pathSeparator).last;
-              final size = file.lengthSync();
-              final ext = fileName.split('.').last;
-              
-              String mimeType = 'application/octet-stream';
-              if (type == MessageType.image) mimeType = 'image/$ext';
-              if (type == MessageType.video) mimeType = 'video/$ext';
-              if (type == MessageType.file) mimeType = 'application/$ext';
-              
               final attachment = MediaAttachment(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
                 url: url,
@@ -69,6 +95,8 @@ class _ChatScreenState extends State<ChatScreen> {
               await model.sendTextMessage(url, type: type);
             }
           }
+          
+          model.removePendingMessage(pendingId);
         }
 
         return Scaffold(
