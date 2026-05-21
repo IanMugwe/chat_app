@@ -77,6 +77,8 @@ class SignupViewmodel extends BaseViewmodel {
       final res = await _auth.signup(_email, _password);
 
       if (res != null) {
+        await res.updateDisplayName(_name);
+
         if (_image != null) {
           downloadUrl = await _storage.uploadImage(_image!);
         }

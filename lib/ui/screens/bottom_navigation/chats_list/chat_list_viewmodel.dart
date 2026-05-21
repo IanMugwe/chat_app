@@ -81,6 +81,12 @@ class ChatListViewmodel extends BaseViewmodel {
         
         setViewState(ViewState.idle);
         notifyListeners();
+      }, onError: (e) {
+        log("Error Fetching Chats: $e");
+        _users = [];
+        _filteredUsers = [];
+        setViewState(ViewState.idle);
+        notifyListeners();
       });
 
     } catch (e) {

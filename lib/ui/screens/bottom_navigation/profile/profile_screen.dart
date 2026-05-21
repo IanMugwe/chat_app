@@ -1,3 +1,4 @@
+import 'package:chat_app/core/services/auth_service.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
 import 'package:chat_app/ui/widgets/button_widget.dart';
 import 'package:flutter/material.dart';
@@ -106,8 +107,11 @@ class ProfileScreen extends StatelessWidget {
             // Logout Button
             CustomButton(
               text: "Logout",
-              onPressed: () {
-                Provider.of<UserProvider>(context, listen: false).clearUser();
+              onPressed: () async {
+                await AuthService().logout();
+                if (context.mounted) {
+                  Provider.of<UserProvider>(context, listen: false).clearUser();
+                }
               },
             ),
             const SizedBox(height: 40),
