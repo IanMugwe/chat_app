@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:chat_app/core/constants/colors.dart';
 import 'package:chat_app/core/constants/styles.dart';
 import 'package:chat_app/core/extension/widget_extension.dart';
+import 'package:chat_app/core/models/media_attachment.dart';
 import 'package:chat_app/core/models/user_model.dart';
 import 'package:chat_app/core/models/chat_message.dart';
 import 'package:chat_app/core/models/chat_enums.dart';
@@ -45,7 +46,28 @@ class _ChatScreenState extends State<ChatScreen> {
           final url =
               await MediaService.instance.uploadMedia(file, 'chat_media');
           if (url != null) {
-            await model.sendTextMessage(url, type: type);
+            if (type == MessageType.file || type == MessageType.image || type == MessageType.video) {
+              final fileName = file.path.split(Platform.pathSeparator).last;
+              final size = file.lengthSync();
+              final ext = fileName.split('.').last;
+              
+              String mimeType = 'application/octet-stream';
+              if (type == MessageType.image) mimeType = 'image/$ext';
+              if (type == MessageType.video) mimeType = 'video/$ext';
+              if (type == MessageType.file) mimeType = 'application/$ext';
+              
+              final attachment = MediaAttachment(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                url: url,
+                storagePath: 'chat_media/$fileName',
+                mimeType: mimeType,
+                sizeBytes: size,
+                fileName: fileName,
+              );
+              await model.sendTextMessage(url, type: type, attachments: [attachment]);
+            } else {
+              await model.sendTextMessage(url, type: type);
+            }
           }
         }
 
