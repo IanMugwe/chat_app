@@ -4,7 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'database_service.dart';
 
 class AuthResult {
-  final bool success;
+  final bool success; 
   final String? message;
   final User? user;
 
