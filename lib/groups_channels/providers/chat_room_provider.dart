@@ -9,7 +9,9 @@ class ChatRoomProvider extends ChangeNotifier {
   ChatRoomProvider(this._repo);
   final ChatRepository _repo;
 
-  List<ChatMessage> messages = [];
+  List<ChatMessage> _fetchedMessages = [];
+  List<ChatMessage> pendingMessages = [];
+  List<ChatMessage> get messages => [...pendingMessages, ..._fetchedMessages];
   bool loading = false;
   bool loadingOlder = false;
   Object? error;
@@ -20,7 +22,7 @@ class ChatRoomProvider extends ChangeNotifier {
     notifyListeners();
     _sub?.cancel();
     _sub = _repo.watchLatestMessages(scope: scope, conversationId: conversationId).listen((v) {
-      messages = v;
+      _fetchedMessages = v;
       loading = false;
       error = null;
       notifyListeners();
@@ -29,6 +31,16 @@ class ChatRoomProvider extends ChangeNotifier {
       loading = false;
       notifyListeners();
     });
+  }
+
+  void addPendingMessage(ChatMessage message) {
+    pendingMessages.insert(0, message);
+    notifyListeners();
+  }
+
+  void removePendingMessage(String id) {
+    pendingMessages.removeWhere((m) => m.id == id);
+    notifyListeners();
   }
 
   Future<void> sendText({
@@ -83,10 +95,10 @@ class ChatRoomProvider extends ChangeNotifier {
       _repo.react(scope: scope, conversationId: conversationId, messageId: messageId, emoji: emoji, userId: userId, add: add);
 
   Future<void> starMessage(ChatScope scope, String conversationId, String messageId, bool isStarred) async {
-    final index = messages.indexWhere((m) => m.id == messageId);
+    final index = _fetchedMessages.indexWhere((m) => m.id == messageId);
     if (index != -1) {
-      final oldMessage = messages[index];
-      messages[index] = ChatMessage(
+      final oldMessage = _fetchedMessages[index];
+      _fetchedMessages[index] = ChatMessage(
         id: oldMessage.id,
         conversationId: oldMessage.conversationId,
         scope: oldMessage.scope,
@@ -111,17 +123,17 @@ class ChatRoomProvider extends ChangeNotifier {
       try {
         await _repo.starMessage(scope: scope, conversationId: conversationId, messageId: messageId, isStarred: isStarred);
       } catch (e) {
-        messages[index] = oldMessage;
+        _fetchedMessages[index] = oldMessage;
         notifyListeners();
       }
     }
   }
 
   Future<void> pinMessage(ChatScope scope, String conversationId, String messageId, bool isPinned) async {
-    final index = messages.indexWhere((m) => m.id == messageId);
+    final index = _fetchedMessages.indexWhere((m) => m.id == messageId);
     if (index != -1) {
-      final oldMessage = messages[index];
-      messages[index] = ChatMessage(
+      final oldMessage = _fetchedMessages[index];
+      _fetchedMessages[index] = ChatMessage(
         id: oldMessage.id,
         conversationId: oldMessage.conversationId,
         scope: oldMessage.scope,
@@ -146,7 +158,7 @@ class ChatRoomProvider extends ChangeNotifier {
       try {
         await _repo.pinMessage(scope: scope, conversationId: conversationId, messageId: messageId, isPinned: isPinned);
       } catch (e) {
-        messages[index] = oldMessage;
+        _fetchedMessages[index] = oldMessage;
         notifyListeners();
       }
     }

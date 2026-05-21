@@ -24,9 +24,10 @@ class ChatViewmodel extends BaseViewmodel {
 
   String chatRoomId = "";
   List<ChatMessage> _messages = [];
+  final List<ChatMessage> _pendingMessages = [];
   final _messageController = TextEditingController();
 
-  List<ChatMessage> get messages => _messages;
+  List<ChatMessage> get messages => [..._pendingMessages, ..._messages];
   TextEditingController get controller => _messageController;
 
   getChatRoom() {
@@ -35,6 +36,16 @@ class ChatViewmodel extends BaseViewmodel {
     } else {
       chatRoomId = "${_receiver.uid}_${_currentUser.uid}";
     }
+  }
+
+  void addPendingMessage(ChatMessage message) {
+    _pendingMessages.insert(0, message);
+    notifyListeners();
+  }
+
+  void removePendingMessage(String id) {
+    _pendingMessages.removeWhere((m) => m.id == id);
+    notifyListeners();
   }
 
   Future<void> sendTextMessage(String text, {MessageType type = MessageType.text, String? replyTo, String? replyPreview, List<MediaAttachment> attachments = const []}) async {

@@ -59,16 +59,50 @@ class _ChatScreenState extends State<ChatScreen> {
 
         Future<void> handleMedia(File? file, MessageType type) async {
           if (file == null) return;
+          
+          final pendingId = "pending_${DateTime.now().millisecondsSinceEpoch}";
+          final fileName = file.path.split(Platform.pathSeparator).last;
+          final size = file.lengthSync();
+          final ext = fileName.split('.').last;
+          
+          String mimeType = 'application/octet-stream';
+          if (type == MessageType.image) mimeType = 'image/$ext';
+          if (type == MessageType.video) mimeType = 'video/$ext';
+          if (type == MessageType.file) mimeType = 'application/$ext';
+          
+          final localAttachment = MediaAttachment(
+            id: pendingId,
+            url: file.path,
+            storagePath: '',
+            mimeType: mimeType,
+            sizeBytes: size,
+            fileName: fileName,
+          );
+          
+          final pendingMessage = ChatMessage(
+            id: pendingId,
+            conversationId: widget.conversation.id,
+            scope: widget.scope,
+            senderId: widget.currentUserId,
+            senderName: widget.currentUserName,
+            type: type,
+            status: MessageStatus.sending,
+            text: file.path,
+            attachments: [localAttachment],
+            createdAt: DateTime.now(),
+          );
+          
+          room.addPendingMessage(pendingMessage);
+          
           final url = await MediaService.instance.uploadMedia(file, 'chat_media');
           if (url != null) {
-            final fileName = file.path.split('/').last;
             final attachment = MediaAttachment(
               id: DateTime.now().millisecondsSinceEpoch.toString(),
               url: url,
               storagePath: 'chat_media/$fileName',
+              mimeType: mimeType,
+              sizeBytes: size,
               fileName: fileName,
-              mimeType: type == MessageType.image ? 'image/jpeg' : 'application/octet-stream',
-              sizeBytes: await file.length(),
             );
             await room.sendMedia(
               scope: widget.scope,
@@ -79,6 +113,8 @@ class _ChatScreenState extends State<ChatScreen> {
               attachments: [attachment],
             );
           }
+          
+          room.removePendingMessage(pendingId);
         }
 
         final uiTheme = Provider.of<UiThemeProvider>(context);
