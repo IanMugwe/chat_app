@@ -60,9 +60,15 @@ class _ChannelsListScreenState extends State<ChannelsListScreen> {
             ? Center(child: CircularProgressIndicator(color: active.primaryAccent))
             : provider.channels.isEmpty
                 ? Center(
-                    child: Text(
-                      'No channels joined yet',
-                      style: body.copyWith(color: active.isDark ? Colors.white60 : Colors.black54),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.campaign_outlined, size: 48.r, color: active.isDark ? Colors.white38 : Colors.black38),
+                        16.verticalSpace,
+                        Text("No channels joined yet", style: body.copyWith(fontWeight: FontWeight.bold, color: active.isDark ? Colors.white : Colors.black87)),
+                        8.verticalSpace,
+                        Text("Tap the + button to create or join a channel.", style: small.copyWith(color: active.isDark ? Colors.white54 : Colors.black54)),
+                      ],
                     ),
                   )
                 : ListView.separated(
@@ -85,13 +91,10 @@ class _ChannelsListScreenState extends State<ChannelsListScreen> {
                     },
                   ),
       ),
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(bottom: 80.h, right: 8.w), // offset to sit above floating nav capsule
-        child: FloatingActionButton(
-          backgroundColor: active.primaryAccent,
-          child: const Icon(Icons.add, color: Colors.white),
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChannelCreateEditScreen(currentUserId: widget.currentUserId))),
-        ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: active.primaryAccent,
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChannelCreateEditScreen(currentUserId: widget.currentUserId))),
       ),
     );
   }

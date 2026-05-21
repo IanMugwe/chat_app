@@ -26,6 +26,7 @@ class ConversationsProvider extends ChangeNotifier {
       error = null;
       notifyListeners();
     }, onError: (e) {
+      groups = [];
       error = e;
       loading = false;
       notifyListeners();
@@ -36,6 +37,7 @@ class ConversationsProvider extends ChangeNotifier {
       error = null;
       notifyListeners();
     }, onError: (e) {
+      channels = [];
       error = e;
       loading = false;
       notifyListeners();

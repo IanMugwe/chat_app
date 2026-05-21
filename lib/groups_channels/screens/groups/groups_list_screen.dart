@@ -60,9 +60,15 @@ class _GroupsListScreenState extends State<GroupsListScreen> {
             ? Center(child: CircularProgressIndicator(color: active.primaryAccent))
             : provider.groups.isEmpty
                 ? Center(
-                    child: Text(
-                      'No groups joined yet',
-                      style: body.copyWith(color: active.isDark ? Colors.white60 : Colors.black54),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.group_outlined, size: 48.r, color: active.isDark ? Colors.white38 : Colors.black38),
+                        16.verticalSpace,
+                        Text("No groups joined yet", style: body.copyWith(fontWeight: FontWeight.bold, color: active.isDark ? Colors.white : Colors.black87)),
+                        8.verticalSpace,
+                        Text("Tap the + button to create or join a group.", style: small.copyWith(color: active.isDark ? Colors.white54 : Colors.black54)),
+                      ],
                     ),
                   )
                 : ListView.separated(
@@ -85,13 +91,10 @@ class _GroupsListScreenState extends State<GroupsListScreen> {
                     },
                   ),
       ),
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(bottom: 80.h, right: 8.w), // offset to sit above floating nav capsule
-        child: FloatingActionButton(
-          backgroundColor: active.primaryAccent,
-          child: const Icon(Icons.group_add, color: Colors.white),
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => GroupCreateEditScreen(currentUserId: widget.currentUserId))),
-        ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: active.primaryAccent,
+        child: const Icon(Icons.group_add, color: Colors.white),
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => GroupCreateEditScreen(currentUserId: widget.currentUserId))),
       ),
     );
   }

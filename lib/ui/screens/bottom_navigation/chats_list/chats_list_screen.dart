@@ -133,12 +133,21 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
                           child: CircularProgressIndicator(),
                         ),
                       )
-                    : model.users.isEmpty
-                        ? const Expanded(
-                            child: Center(
-                              child: Text("No messages yet"),
-                            ),
-                          )
+                        : model.users.isEmpty
+                            ? Expanded(
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.chat_bubble_outline, size: 48.r, color: active.isDark ? Colors.white38 : Colors.black38),
+                                      16.verticalSpace,
+                                      Text("No messages yet", style: body.copyWith(fontWeight: FontWeight.bold, color: active.isDark ? Colors.white : Colors.black87)),
+                                      8.verticalSpace,
+                                      Text("Tap the + button to start a new chat.", style: small.copyWith(color: active.isDark ? Colors.white54 : grey)),
+                                    ],
+                                  ),
+                                ),
+                              )
                         : Expanded(
                             child: ListView.separated(
                               padding: EdgeInsets.symmetric(vertical: 4.h),
