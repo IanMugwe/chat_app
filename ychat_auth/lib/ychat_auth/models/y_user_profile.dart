@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class YUserProfile {
+class YUserProfile { 
   final String uid;
   final String email;
   final String name;
