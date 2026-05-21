@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:chat_app/core/models/chat_message.dart';
 import 'package:chat_app/core/models/chat_enums.dart';
 import 'package:chat_app/core/models/user_model.dart';
+import 'package:chat_app/core/models/media_attachment.dart';
 import 'package:chat_app/core/other/base_viewmodel.dart';
 import 'package:chat_app/core/services/chat_service.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,7 @@ class ChatViewmodel extends BaseViewmodel {
     }
   }
 
-  Future<void> sendTextMessage(String text, {MessageType type = MessageType.text, String? replyTo, String? replyPreview}) async {
+  Future<void> sendTextMessage(String text, {MessageType type = MessageType.text, String? replyTo, String? replyPreview, List<MediaAttachment> attachments = const []}) async {
     try {
       await _chatService.sendMessage(
         chatRoomId: chatRoomId,
@@ -46,6 +47,7 @@ class ChatViewmodel extends BaseViewmodel {
         type: type,
         replyToMessageId: replyTo,
         replyPreview: replyPreview,
+        attachments: attachments,
       );
     } catch (e) {
       rethrow;

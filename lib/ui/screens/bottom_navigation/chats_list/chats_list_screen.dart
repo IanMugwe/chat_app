@@ -8,6 +8,7 @@ import 'package:chat_app/core/providers/ui_theme_provider.dart';
 import 'package:chat_app/ui/screens/bottom_navigation/chats_list/chat_list_viewmodel.dart';
 import 'package:chat_app/ui/screens/other/user_provider.dart';
 import 'package:chat_app/ui/widgets/textfield_widget.dart';
+import 'package:chat_app/ui/screens/bottom_navigation/chats_list/start_chat_screen.dart';
 import 'package:chat_app/ui/screens/ai_chat/ai_chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -135,7 +136,7 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
                     : model.users.isEmpty
                         ? const Expanded(
                             child: Center(
-                              child: Text("No Users yet"),
+                              child: Text("No messages yet"),
                             ),
                           )
                         : Expanded(
@@ -187,12 +188,9 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
                   backgroundColor: active.primaryAccent,
                   elevation: 4,
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content:
-                            const Text('Start New Chat feature coming soon!'),
-                        backgroundColor: active.primaryAccent,
-                      ),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const StartChatScreen()),
                     );
                   },
                   child: const Icon(Icons.chat, color: Colors.white),
