@@ -6,7 +6,7 @@ import '../services/auth_service.dart';
 import '../services/database_service.dart';
 
 enum AuthGateState {
-  booting,
+  booting, 
   unauthenticated,
   emailNotVerified,
   authenticated,
@@ -74,7 +74,14 @@ class YUserProvider extends ChangeNotifier {
 
     try {
       await _databaseService.createUserProfileIfNeeded(user: user);
-      final loadedProfile = await _databaseService.getCurrentUserProfile();
+      
+      // Retry logic for profile loading to handle slight propagation delay
+      YUserProfile? loadedProfile;
+      for (int i = 0; i < 3; i++) {
+        loadedProfile = await _databaseService.getCurrentUserProfile(forceRefresh: true);
+        if (loadedProfile != null) break;
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
 
       if (loadedProfile == null) {
         _setState(AuthGateState.error, errorMessage: 'Profile could not be loaded.');
