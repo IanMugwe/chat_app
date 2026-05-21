@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:chat_app/core/models/chat_enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -487,12 +488,99 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ),
               )
             else ...[
-              if (widget.message.text != null)
+              if (widget.message.type == MessageType.text && widget.message.text != null)
                 Text(
                   widget.message.text!,
                   style: textStyle,
-                ),
-              if (widget.message.attachments != null && widget.message.attachments.isNotEmpty)
+                )
+              else if (widget.message.type == MessageType.image && widget.message.text != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: GestureDetector(
+                    onTap: () {
+                      // Support tap to preview/fullscreen
+                    },
+                    child: Image.network(
+                      widget.message.text!,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          height: 150.h,
+                          width: 150.w,
+                          color: Colors.grey.withOpacity(0.2),
+                          child: const Center(child: CircularProgressIndicator()),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 150.h,
+                        width: 150.w,
+                        color: Colors.grey.withOpacity(0.2),
+                        child: const Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                )
+              else if (widget.message.type == MessageType.video && widget.message.text != null)
+                GestureDetector(
+                  onTap: () {
+                    // Support tap to play
+                  },
+                  child: Container(
+                    height: 150.h,
+                    width: 200.w,
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Center(
+                      child: Icon(Icons.play_circle_fill, color: Colors.white, size: 50.r),
+                    ),
+                  ),
+                )
+              else if (widget.message.type == MessageType.file && widget.message.attachments.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    // Tap to download/open
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(12.r),
+                    decoration: BoxDecoration(
+                      color: widget.isMine ? Colors.white.withOpacity(0.2) : Colors.black.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.insert_drive_file, color: widget.isMine ? Colors.white : active.primaryAccent),
+                        8.horizontalSpace,
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.message.attachments.first.fileName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: body.copyWith(
+                                  color: widget.isMine ? Colors.white : Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                '${(widget.message.attachments.first.sizeBytes / 1024).toStringAsFixed(1)} KB',
+                                style: small.copyWith(
+                                  color: widget.isMine ? Colors.white70 : Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else if (widget.message.attachments != null && widget.message.attachments.isNotEmpty)
                 Padding(
                   padding: EdgeInsets.only(top: 6.h),
                   child: MediaPreview(attachments: widget.message.attachments, isOutgoing: widget.isMine),
